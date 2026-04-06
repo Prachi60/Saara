@@ -5,7 +5,7 @@ import logoImage from "../../../data/logos/ChatGPT Image Dec 2, 2025, 03_01_19 P
 
 const defaultSettings = {
   general: {
-    storeName: "Appzeto E-commerce",
+    storeName: "Saara E-commerce",
     storeLogo: logoImage,
     favicon: logoImage,
     contactEmail: "contact@example.com",
@@ -120,7 +120,7 @@ const defaultSettings = {
     smtpUser: "",
     smtpPassword: "",
     fromEmail: "noreply@example.com",
-    fromName: "Appzeto Store",
+    fromName: "Saara Store",
   },
   notifications: {
     email: {
@@ -136,7 +136,7 @@ const defaultSettings = {
     },
   },
   seo: {
-    metaTitle: "Appzeto E-commerce - Shop Online",
+    metaTitle: "Saara E-commerce - Shop Online",
     metaDescription: "Shop the latest trends and products",
     metaKeywords: "ecommerce, shopping, online store",
     ogImage: logoImage,

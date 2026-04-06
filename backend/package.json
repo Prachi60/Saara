@@ -1,7 +1,7 @@
 {
-  "name": "appzeto-backend",
+  "name": "saara-backend",
   "version": "1.0.0",
-  "description": "Appzeto Multi-Vendor E-Commerce Backend API",
+  "description": "Saara Multi-Vendor E-Commerce Backend API",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
