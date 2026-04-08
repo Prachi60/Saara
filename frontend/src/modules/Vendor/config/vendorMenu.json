@@ -15,6 +15,16 @@
                      ]
     },
     {
+        "title": "Affiliate Program",
+        "route": "/vendor/affiliate",
+        "children": []
+    },
+    {
+        "title": "Website Builder",
+        "route": "/vendor/builder",
+        "children": []
+    },
+    {
         "title":  "Orders",
         "route":  "/vendor/orders",
         "children":  [

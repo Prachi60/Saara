@@ -130,6 +130,15 @@ import MobileCampaignSale from "./modules/UserApp/pages/CampaignSale";
 import MobileTrackOrder from "./modules/UserApp/pages/TrackOrder";
 import MobileOrderConfirmation from "./modules/UserApp/pages/OrderConfirmation";
 import ComingSoon from "./modules/UserApp/pages/ComingSoon";
+import ReelsPage from "./modules/Reels/pages/ReelsPage";
+import WalletPage from "./modules/Affiliate/pages/WalletPage";
+import ExplorePage from "./modules/Explore/pages/ExplorePage";
+import VendorAffiliateDashboard from "./modules/VendorAffiliate/pages/AffiliateDashboard";
+import BuilderDashboard from "./modules/WebsiteBuilder/pages/BuilderDashboard";
+import StorePreview from "./modules/WebsiteBuilder/pages/StorePreview";
+import ReelModeration from "./modules/AdminSocial/pages/ReelModeration";
+import AffiliatePayouts from "./modules/AdminSocial/pages/AffiliatePayouts";
+import AuditLogs from "./modules/AdminSocial/pages/AuditLogs";
 // Delivery Routes
 import DeliveryLogin from "./modules/Delivery/pages/Login";
 import DeliveryRegister from "./modules/Delivery/pages/Register";
@@ -350,6 +359,38 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/reels"
+        element={
+          <RouteWrapper>
+            <ReelsPage />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/wallet"
+        element={
+          <RouteWrapper>
+            <WalletPage />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/explore"
+        element={
+          <RouteWrapper>
+            <ExplorePage />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/store/:vendorId"
+        element={
+          <RouteWrapper>
+            <StorePreview />
+          </RouteWrapper>
+        }
+      />
+      <Route
         path="/order-confirmation/:orderId"
         element={
           <RouteWrapper>
@@ -455,6 +496,11 @@ const AppRoutes = () => {
         <Route path="customers/addresses" element={<CustomerAddresses />} />
         <Route path="customers/transactions" element={<Transactions />} />
         <Route path="customers/:id" element={<CustomerDetailPage />} />
+        
+        {/* Social Control Routes */}
+        <Route path="reels" element={<ReelModeration />} />
+        <Route path="payouts" element={<AffiliatePayouts />} />
+        <Route path="audit-logs" element={<AuditLogs />} />
 
         <Route path="delivery" element={<DeliveryBoys />} />
         <Route path="delivery/delivery-boys" element={<DeliveryBoys />} />
@@ -569,6 +615,8 @@ const AppRoutes = () => {
         }>
         <Route index element={<Navigate to="/vendor/dashboard" replace />} />
         <Route path="dashboard" element={<VendorDashboard />} />
+        <Route path="affiliate" element={<VendorAffiliateDashboard />} />
+        <Route path="builder" element={<BuilderDashboard />} />
         <Route path="products" element={<VendorProducts />} />
         <Route
           path="products/manage-products"

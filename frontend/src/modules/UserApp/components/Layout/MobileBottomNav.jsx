@@ -1,7 +1,7 @@
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FiHome, FiGrid, FiSearch, FiHeart, FiUser } from "react-icons/fi";
+import { FiHome, FiGrid, FiSearch, FiHeart, FiUser, FiPlay, FiCompass } from "react-icons/fi";
 import { useWishlistStore } from "../../../../shared/store/wishlistStore";
 import { useAuthStore } from "../../../../shared/store/authStore";
 
@@ -12,8 +12,8 @@ const MobileBottomNav = () => {
 
   const navItems = [
     { path: "/home", icon: FiHome, label: "Home" },
-    { path: "/categories", icon: FiGrid, label: "Categories" },
-    { path: "/search", icon: FiSearch, label: "Search" },
+    { path: "/explore", icon: FiCompass, label: "Explore" }, // Replaced Categories with Explore
+    { path: "/reels", icon: FiPlay, label: "Reels" }, // New Reels item
     {
       path: "/wishlist",
       icon: FiHeart,
