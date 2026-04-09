@@ -44,21 +44,8 @@ const isValidDeliveryDocToken = (relativePath, rawToken) => {
 // ─── Security Middleware ─────────────────────────────────────────────────────
 app.use(helmet());
 app.use(mongoSanitize());
-const allowedOrigins = [
-    process.env.CLIENT_URL,
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:3001'
-].filter(Boolean);
-
 app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: (origin, callback) => callback(null, true),
     credentials: true,
 }));
 
