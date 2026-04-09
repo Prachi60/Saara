@@ -47,6 +47,7 @@ const iconMap = {
   Settings: FiSettings,
   Policies: FiShield,
   Firebase: FiDatabase,
+  "Social Control": FiShield,
 };
 
 // Helper function to convert child name to route path
@@ -121,6 +122,11 @@ const getChildRoute = (parentRoute, childName) => {
     "/admin/firebase": {
       "Push Config": "/admin/firebase/push-config",
       Authentication: "/admin/firebase/authentication",
+    },
+    "/admin": {
+      "Moderate Reels": "/admin/reels",
+      "Affiliate Payouts": "/admin/payouts",
+      "Audit Logs": "/admin/audit-logs",
     },
   };
 

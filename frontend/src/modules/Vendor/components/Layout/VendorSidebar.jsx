@@ -10,6 +10,7 @@ import {
   FiSettings,
   FiUser,
   FiChevronDown,
+  FiLayout,
   FiX,
   FiTrendingDown,
   FiCreditCard,
@@ -25,6 +26,7 @@ import {
   FiMessageSquare,
   FiTrendingUp,
   FiFile,
+  FiAward,
 } from "react-icons/fi";
 import { useVendorAuthStore } from "../../store/vendorAuthStore";
 import vendorMenu from "../../config/vendorMenu.json";
@@ -33,6 +35,8 @@ import vendorMenu from "../../config/vendorMenu.json";
 const iconMap = {
   Dashboard: FiHome,
   Products: FiPackage,
+  "Affiliate Program": FiAward,
+  "Website Builder": FiLayout,
   Orders: FiShoppingBag,
   "Return Requests": FiRefreshCw,
   "Product Reviews": FiStar,
