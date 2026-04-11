@@ -1,11 +1,11 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import toast from "react-hot-toast";
-import logoImage from "../../../data/logos/ChatGPT Image Dec 2, 2025, 03_01_19 PM.png";
+import logoImage from "../../../data/logos/porutkal_logo.png";
 
 const defaultSettings = {
   general: {
-    storeName: "Saara E-commerce",
+    storeName: "Porutkal E-commerce",
     storeLogo: logoImage,
     favicon: logoImage,
     contactEmail: "contact@example.com",
@@ -120,7 +120,7 @@ const defaultSettings = {
     smtpUser: "",
     smtpPassword: "",
     fromEmail: "noreply@example.com",
-    fromName: "Saara Store",
+    fromName: "Porutkal Store",
   },
   notifications: {
     email: {
@@ -136,7 +136,7 @@ const defaultSettings = {
     },
   },
   seo: {
-    metaTitle: "Saara E-commerce - Shop Online",
+    metaTitle: "Porutkal E-commerce - Shop Online",
     metaDescription: "Shop the latest trends and products",
     metaKeywords: "ecommerce, shopping, online store",
     ogImage: logoImage,

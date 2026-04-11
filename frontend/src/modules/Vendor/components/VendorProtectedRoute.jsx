@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useVendorAuthStore } from '../store/vendorAuthStore';
 
@@ -14,7 +15,7 @@ const decodeJwtPayload = (token) => {
 };
 
 const VendorProtectedRoute = ({ children }) => {
-  const { isAuthenticated, token } = useVendorAuthStore();
+  const { isAuthenticated, token, logout } = useVendorAuthStore();
   const location = useLocation();
   const accessToken = token || localStorage.getItem('vendor-token');
   const payload = decodeJwtPayload(accessToken);
@@ -23,21 +24,14 @@ const VendorProtectedRoute = ({ children }) => {
     typeof payload?.exp === 'number' ? payload.exp * 1000 : null;
   const isExpired = tokenExpiryMs ? Date.now() >= tokenExpiryMs : false;
 
-  if (!isAuthenticated || !accessToken) {
-    return <Navigate to="/vendor/login" state={{ from: location }} replace />;
-  }
+  useEffect(() => {
+    // If authenticated but token is expired or role is invalid, log out
+    if (isAuthenticated && (isExpired || (role && accessToken && role !== 'vendor'))) {
+      logout();
+    }
+  }, [isAuthenticated, isExpired, role, accessToken, logout]);
 
-  if (isExpired) {
-    localStorage.removeItem('vendor-token');
-    localStorage.removeItem('vendor-refresh-token');
-    localStorage.removeItem('vendor-auth-storage');
-    return <Navigate to="/vendor/login" state={{ from: location }} replace />;
-  }
-
-  if (role && role !== 'vendor') {
-    localStorage.removeItem('vendor-token');
-    localStorage.removeItem('vendor-refresh-token');
-    localStorage.removeItem('vendor-auth-storage');
+  if (!isAuthenticated || !accessToken || isExpired || (role && accessToken && role !== 'vendor')) {
     return <Navigate to="/vendor/login" state={{ from: location }} replace />;
   }
 

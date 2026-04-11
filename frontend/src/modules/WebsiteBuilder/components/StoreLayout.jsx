@@ -38,7 +38,7 @@ const StoreLayout = ({ config, children }) => {
             {/* Store Footer */}
             <div className="mt-24 pt-12 border-t border-gray-100 text-center">
                 <p className="text-xs font-bold text-gray-300 uppercase tracking-widest">
-                    Powered by Saara Website Builder
+                    Powered by Porutkal Website Builder
                 </p>
             </div>
         </div>

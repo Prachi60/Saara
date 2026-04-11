@@ -62,7 +62,7 @@ const DeliveryLayout = () => {
                 <img
                   src={appLogo.src}
                   alt={appLogo.alt}
-                  className="h-6 sm:h-8 w-auto object-contain origin-left"
+                  className="h-14 sm:h-16 w-auto object-contain origin-left"
                   onError={(e) => {
                     // Hide image if logo doesn't exist
                     e.target.style.display = "none";

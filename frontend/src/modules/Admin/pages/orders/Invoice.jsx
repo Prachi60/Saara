@@ -6,7 +6,7 @@ import { formatPrice } from "../../../../shared/utils/helpers";
 import { useSettingsStore } from "../../../../shared/store/settingsStore";
 import { getOrderById } from "../../services/adminService";
 import toast from "react-hot-toast";
-import logoImage from "../../../../../data/logos/ChatGPT Image Dec 2, 2025, 03_01_19 PM.png";
+import logoImage from "../../../../../data/logos/porutkal_logo.png";
 
 const Invoice = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const Invoice = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { settings } = useSettingsStore();
   const storeLogo = settings?.general?.storeLogo || logoImage;
-  const storeName = settings?.general?.storeName || "Saara E-commerce";
+  const storeName = settings?.general?.storeName || "Porutkal E-commerce";
 
   useEffect(() => {
     const fetchOrder = async () => {
