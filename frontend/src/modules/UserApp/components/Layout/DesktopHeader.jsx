@@ -11,6 +11,8 @@ import {
   FiLogOut,
   FiGrid,
   FiBell,
+  FiPlay,
+  FiCompass,
 } from "react-icons/fi";
 import { HiOutlineUserCircle } from "react-icons/hi";
 import { useState, useRef, useEffect } from "react";
@@ -84,6 +86,16 @@ const DesktopHeader = () => {
             to="/offers"
             className="text-gray-600 hover:text-primary-600 font-medium text-sm lg:text-base">
             Offers
+          </Link>
+          <Link
+            to="/explore"
+            className="text-gray-600 hover:text-primary-600 font-medium text-sm lg:text-base flex items-center gap-1">
+            <FiCompass /> Explore
+          </Link>
+          <Link
+            to="/reels"
+            className="text-gray-600 hover:text-primary-600 font-medium text-sm lg:text-base flex items-center gap-1">
+            <FiPlay /> Reels
           </Link>
         </nav>
 

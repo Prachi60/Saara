@@ -36,7 +36,7 @@ const ReelCard = ({ reel, toggleLike, shareReel, saveReel, reportReel }) => {
     };
 
     return (
-        <div className="relative h-screen w-full bg-black snap-start overflow-hidden group">
+        <div className="relative h-screen w-full md:max-w-[calc(100vh*9/16)] bg-black snap-start overflow-hidden group shrink-0">
             {/* Background Video */}
             <video
                 ref={videoRef}

@@ -48,7 +48,7 @@ const ExplorePage = () => {
                                 Trending Reels
                             </h2>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
                             {reels.map(reel => (
                                 <ExploreReelCard key={reel.id} reel={reel} />
                             ))}

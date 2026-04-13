@@ -9,19 +9,21 @@ const ReelsPage = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="relative h-screen w-full bg-black overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar">
+        <div className="relative h-screen w-full bg-black overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar flex flex-col items-center">
             {/* Top Navigation Bar Overlay */}
-            <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-8 pointer-events-none">
-                <button
-                    onClick={() => navigate('/')}
-                    className="pointer-events-auto p-2 rounded-full bg-black/20 backdrop-blur-md text-white transition-all active:scale-95 border border-white/10"
-                >
-                    <ArrowLeft size={24} strokeWidth={2.5} />
-                </button>
-                <div className="pointer-events-auto font-black text-2xl text-white tracking-widest drop-shadow-2xl">
-                    REELS
+            <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+                <div className="w-full md:max-w-[calc(100vh*9/16)] flex items-center justify-between px-4 py-8">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="pointer-events-auto p-2 rounded-full bg-black/20 backdrop-blur-md text-white transition-all active:scale-95 border border-white/10"
+                    >
+                        <ArrowLeft size={24} strokeWidth={2.5} />
+                    </button>
+                    <div className="pointer-events-auto font-black text-2xl text-white tracking-widest drop-shadow-2xl">
+                        REELS
+                    </div>
+                    <div className="w-10 opacity-0" /> {/* Spacer */}
                 </div>
-                <div className="w-10 opacity-0" /> {/* Spacer */}
             </div>
 
             {/* Scroll Container */}
