@@ -37,6 +37,7 @@ const MobileHeader = () => {
   const [topRowHeight, setTopRowHeight] = useState(70);
   const lastScrollYRef = useRef(0);
   const topRowRef = useRef(null);
+  const headerContentRef = useRef(null);
   const userMenuRef = useRef(null);
   const logoRef = useRef(null);
   const cartRef = useRef(null);
@@ -141,19 +142,25 @@ const MobileHeader = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Measure top row height
+  // Measure header height for scroll hiding
   useEffect(() => {
-    const measureTopRow = () => {
-      if (topRowRef.current) {
-        const height = topRowRef.current.offsetHeight;
-        setTopRowHeight(height);
+    const measureHeader = () => {
+      if (headerContentRef.current) {
+        setTopRowHeight(headerContentRef.current.offsetHeight);
+      } else if (topRowRef.current) {
+        setTopRowHeight(topRowRef.current.offsetHeight);
       }
     };
 
-    measureTopRow();
-    window.addEventListener("resize", measureTopRow);
-    return () => window.removeEventListener("resize", measureTopRow);
-  }, []);
+    measureHeader();
+    window.addEventListener("resize", measureHeader);
+    // Recalculate after a short delay to account for conditional rendering
+    const timer = setTimeout(measureHeader, 100);
+    return () => {
+      window.removeEventListener("resize", measureHeader);
+      clearTimeout(timer);
+    };
+  }, [currentPage]);
 
   // Handle scroll to hide/show top row with smooth throttling
   useEffect(() => {
@@ -309,7 +316,7 @@ const MobileHeader = () => {
         damping: 30,
         mass: 0.8,
       }}>
-      <div className="px-4 py-3 overflow-visible">
+      <div ref={headerContentRef} className="px-4 py-3 overflow-visible">
         {/* First Row: Logo and Actions */}
         <motion.div
           ref={topRowRef}
@@ -377,8 +384,8 @@ const MobileHeader = () => {
               animate={
                 cartAnimationTrigger > 0
                   ? {
-                    scale: [1, 1.2, 1],
-                  }
+                      scale: [1, 1.2, 1],
+                    }
                   : {}
               }
               transition={{ duration: 0.5, ease: "easeOut" }}>
@@ -394,12 +401,30 @@ const MobileHeader = () => {
                 </motion.span>
               )}
             </motion.button>
-
-
           </div>
         </motion.div>
 
-
+        {/* Search Bar Row - Added only for the home page in mobile view */}
+        {currentPage === "home" && (
+          <motion.div
+            initial={false}
+            animate={{
+              opacity: isTopRowVisible ? 1 : 0,
+              y: isTopRowVisible ? 0 : -10,
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 35,
+              mass: 0.6,
+            }}
+            className="mb-1"
+            style={{
+              pointerEvents: isTopRowVisible ? "auto" : "none",
+            }}>
+            <SearchBar />
+          </motion.div>
+        )}
       </div>
     </motion.header>
   );

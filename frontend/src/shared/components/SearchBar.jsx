@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiSearch, FiClock, FiTrendingUp } from 'react-icons/fi';
+import { FiSearch, FiClock, FiTrendingUp, FiMic } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCatalogProducts } from '../../modules/UserApp/data/catalogData';
 import api from '../utils/api';
@@ -16,6 +16,7 @@ const SearchBar = () => {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [suggestions, setSuggestions] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
+  const [isListening, setIsListening] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,10 +27,48 @@ const SearchBar = () => {
   const suggestionsRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Voice Search Handler
+  const startListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice search is not supported in this browser.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setSearchQuery(transcript);
+      setIsListening(false);
+      if (transcript.trim()) {
+        saveRecentSearch(transcript.trim());
+        navigate(`/search?q=${encodeURIComponent(transcript.trim())}`);
+        setShowSuggestions(false);
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
   // Popular searches (can be made dynamic later)
   const popularSearches = ['Diapers', 'Vegetables', 'Meat', 'Fruits', 'Baby Care'];
-
-
 
   // Get recent searches from localStorage
   const getRecentSearches = () => {
@@ -157,7 +196,7 @@ const SearchBar = () => {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (searchQuery.trim()) {
       saveRecentSearch(searchQuery);
       const searchRoute = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
@@ -235,11 +274,88 @@ const SearchBar = () => {
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
             onKeyDown={handleKeyDown}
-            placeholder="Search products..."
-            className="w-full pl-12 pr-4 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400"
+            placeholder={isListening ? "Listening..." : "Search products..."}
+            className="w-full pl-12 pr-12 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400"
           />
+          <button
+            type="button"
+            onClick={startListening}
+            className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-all duration-300 z-20 ${
+              isListening 
+              ? 'bg-red-500 text-white shadow-lg scale-110 animate-pulse' 
+              : 'text-gray-400 hover:text-primary-500 hover:bg-primary-50'
+            }`}
+            title="Voice Search"
+          >
+            <FiMic className={`${isListening ? 'scale-110' : ''}`} />
+          </button>
         </div>
       </form>
+
+      {/* Voice Search Overlay Card */}
+      <AnimatePresence>
+        {isListening && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10000] flex items-center justify-center px-4 md:px-0"
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 20 }}
+              className="bg-white rounded-[2.5rem] p-6 md:p-8 shadow-2xl flex flex-col items-center gap-4 max-w-[300px] w-full mx-auto text-center"
+            >
+              <div className="relative">
+                {/* Pulsing Background Rings */}
+                <motion.div
+                  animate={{
+                    scale: [1, 1.4, 1.8],
+                    opacity: [0.3, 0.1, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeOut",
+                  }}
+                  className="absolute inset-0 bg-primary-500 rounded-full"
+                />
+                
+                {/* Main Mic Button Overlay */}
+                <div className="relative z-10 w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-primary-200">
+                  <FiMic className="text-3xl animate-bounce" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-xl font-bold text-gray-900 tracking-tight">Speak Now</h3>
+                <p className="text-gray-500 text-xs font-medium">Listening for your command...</p>
+              </div>
+
+              <div className="w-full bg-gray-50 p-3 rounded-2xl flex flex-wrap justify-center gap-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 w-full mb-0.5">Try saying</span>
+                {['T-shirts', 'Jackets', 'Sneakers'].map((hint) => (
+                  <span key={hint} className="px-2.5 py-0.5 bg-white border border-gray-100 rounded-full text-[10px] font-medium text-gray-600 shadow-sm">
+                    "{hint}"
+                  </span>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setIsListening(false)}
+                className="mt-1 text-xs font-bold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-widest"
+              >
+                Cancel
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Autocomplete Dropdown */}
       {showSuggestions && hasSuggestions && (
