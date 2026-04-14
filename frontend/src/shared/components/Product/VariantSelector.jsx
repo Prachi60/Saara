@@ -127,36 +127,56 @@ const VariantSelector = ({ variants, onVariantChange, currentPrice }) => {
   return (
     <div className="space-y-6">
       {axes.map((axis) => (
-        <div key={axis.key}>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
-            {axis.label}:{" "}
-            <span className="font-normal text-gray-600">
-              {selectedVariant?.[axis.key] || `Select ${axis.label.toLowerCase()}`}
-            </span>
+        <div key={axis.key} className="flex items-center gap-4">
+          <label className="text-sm shrink-0">
+            <span className="text-gray-500 font-medium">{axis.label}:</span>
           </label>
           <div className="flex flex-wrap gap-3">
             {axis.values.map((option) => {
               const isSelected = selectedVariant?.[axis.key] === option;
               const isAvailable = isOptionAvailable(axis.key, option);
+              const isColorAxis = axis.key === "color";
+
+              if (isColorAxis) {
+                return (
+                  <button
+                    key={`${axis.key}-${option}`}
+                    onClick={() => handleOptionSelect(axis.key, option)}
+                    disabled={!isAvailable}
+                    className={`relative w-10 h-10 rounded-full border-2 transition-all duration-300 ${isSelected
+                        ? "border-slate-800 scale-110 shadow-md"
+                        : isAvailable
+                          ? "border-transparent hover:border-gray-300"
+                          : "border-gray-100 opacity-50 cursor-not-allowed"
+                      }`}
+                    title={option}
+                  >
+                    <div
+                      className="w-full h-full rounded-full border border-gray-100 shadow-inner"
+                      style={{ backgroundColor: option.toLowerCase() }}
+                    />
+                    {isSelected && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <FiCheck className={`${['white', '#fff', '#ffffff', 'yellow'].includes(option.toLowerCase()) ? 'text-gray-800' : 'text-white'} text-base`} />
+                      </span>
+                    )}
+                  </button>
+                );
+              }
+
               return (
                 <button
                   key={`${axis.key}-${option}`}
                   onClick={() => handleOptionSelect(axis.key, option)}
                   disabled={!isAvailable}
-                  className={`relative px-4 py-2 rounded-xl font-semibold border-2 transition-all duration-300 ${
-                    isSelected
-                      ? "border-primary-600 bg-primary-50 text-primary-700"
+                  className={`relative px-5 py-2 rounded-xl text-base font-bold border-2 transition-all duration-300 ${isSelected
+                      ? "border-teal-600 bg-teal-50 text-teal-700"
                       : isAvailable
-                      ? "border-gray-200 hover:border-primary-400 bg-white text-gray-700"
-                      : "border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50"
-                  }`}
+                        ? "border-gray-200 hover:border-teal-400 bg-white text-gray-700"
+                        : "border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50"
+                    }`}
                 >
                   {option}
-                  {isSelected && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary-600 rounded-full flex items-center justify-center">
-                      <FiCheck className="text-white text-xs" />
-                    </span>
-                  )}
                 </button>
               );
             })}

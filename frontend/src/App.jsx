@@ -129,6 +129,8 @@ import MobileNewArrivals from "./modules/UserApp/pages/NewArrivals";
 import MobileCampaignSale from "./modules/UserApp/pages/CampaignSale";
 import MobileTrackOrder from "./modules/UserApp/pages/TrackOrder";
 import MobileOrderConfirmation from "./modules/UserApp/pages/OrderConfirmation";
+import PolicyPage from "./modules/UserApp/pages/PolicyPage";
+import SimilarExplore from "./modules/UserApp/pages/SimilarExplore";
 import ComingSoon from "./modules/UserApp/pages/ComingSoon";
 import ReelsPage from "./modules/Reels/pages/ReelsPage";
 import WalletPage from "./modules/Affiliate/pages/WalletPage";
@@ -455,6 +457,22 @@ const AppRoutes = () => {
             <ProtectedRoute>
               <MobileAddresses />
             </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/policy/:type"
+        element={
+          <RouteWrapper>
+            <PolicyPage />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/similar-explore/:id"
+        element={
+          <RouteWrapper>
+            <SimilarExplore />
           </RouteWrapper>
         }
       />

@@ -7,7 +7,7 @@ import MobileCartBar from './MobileCartBar';
 import CartDrawer from '../../../../shared/components/Cart/CartDrawer';
 import useMobileHeaderHeight from '../../hooks/useMobileHeaderHeight';
 
-const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) => {
+const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, showHeader = true }) => {
   const location = useLocation();
   const headerHeight = useMobileHeaderHeight();
   // Hide header and bottom nav on login, register, and verification pages
@@ -20,12 +20,13 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
   // Respect the showBottomNav prop and hide on auth pages
   const shouldShowBottomNav = showBottomNav && !isAuthPage;
   // Hide header on categories, search, wishlist, profile, and auth pages
-  const shouldShowHeader = !isAuthPage &&
+  const shouldShowHeader = showHeader && !isAuthPage &&
     location.pathname !== '/categories' &&
     location.pathname !== '/search' &&
     location.pathname !== '/wishlist' &&
     location.pathname !== '/profile' &&
     location.pathname !== '/orders' &&
+    !location.pathname.startsWith('/product/') &&
     !isCheckoutPage;
 
   // Ensure body scroll is restored when component mounts

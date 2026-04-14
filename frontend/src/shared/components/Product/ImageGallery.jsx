@@ -1,12 +1,23 @@
-import { useState } from "react";
-import { FiX, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { FiX } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import LazyImage from "../LazyImage";
 import useSwipeGesture from "../../../modules/UserApp/hooks/useSwipeGesture";
 
-const ImageGallery = ({ images, productName = "Product", children }) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+const ImageGallery = ({ 
+  images, 
+  productName = "Product", 
+  children,
+  externalIndex = 0,
+  onIndexChange
+}) => {
+  const [selectedIndex, setSelectedIndex] = useState(externalIndex);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+  // Sync with external index
+  useEffect(() => {
+    setSelectedIndex(externalIndex);
+  }, [externalIndex]);
 
   // Ensure images is an array
   const imageArray =
@@ -22,22 +33,17 @@ const ImageGallery = ({ images, productName = "Product", children }) => {
     );
   }
 
-  const handleThumbnailClick = (index) => {
-    setSelectedIndex(index);
+  const updateIndex = (newIndex) => {
+    setSelectedIndex(newIndex);
+    onIndexChange?.(newIndex);
   };
 
   const handleNext = () => {
-    setSelectedIndex((prev) => (prev + 1) % imageArray.length);
+    updateIndex((selectedIndex + 1) % imageArray.length);
   };
 
   const handlePrevious = () => {
-    setSelectedIndex(
-      (prev) => (prev - 1 + imageArray.length) % imageArray.length
-    );
-  };
-
-  const handleImageClick = () => {
-    setIsLightboxOpen(true);
+    updateIndex((selectedIndex - 1 + imageArray.length) % imageArray.length);
   };
 
   // Swipe gestures for image navigation
@@ -49,15 +55,14 @@ const ImageGallery = ({ images, productName = "Product", children }) => {
 
   return (
     <>
-      <div className="w-full flex flex-col gap-6">
+      <div className="w-full flex flex-col">
         {/* Main Image */}
         <div
-          className="relative w-full aspect-square bg-white rounded-3xl p-4 shadow-sm border border-gray-100 overflow-hidden"
+          className="relative w-full aspect-[4/3] bg-white lg:rounded-3xl p-0 lg:p-4 overflow-hidden"
           data-gallery>
           <motion.div
             key={selectedIndex}
-            className="w-full h-full"
-            onClick={handleImageClick}
+            className="w-full h-full cursor-default"
             onTouchStart={swipeHandlers.onTouchStart}
             onTouchMove={swipeHandlers.onTouchMove}
             onTouchEnd={swipeHandlers.onTouchEnd}
@@ -67,66 +72,20 @@ const ImageGallery = ({ images, productName = "Product", children }) => {
             <LazyImage
               src={imageArray[selectedIndex]}
               alt={`${productName} - Image ${selectedIndex + 1}`}
-              className="w-full h-full object-contain mix-blend-multiply"
+              className="w-full h-full object-cover lg:object-contain mix-blend-multiply"
               onError={(e) => {
                 e.target.src =
                   "https://via.placeholder.com/500x500?text=Product+Image";
               }}
             />
           </motion.div>
-
-          {/* Navigation Arrows (Mobile Only) */}
-          {imageArray.length > 1 && (
-            <>
-              <button
-                onClick={(e) => { e.stopPropagation(); handlePrevious(); }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:bg-white hover:scale-110 lg:hidden">
-                <FiChevronLeft className="text-gray-800 text-xl" />
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:bg-white hover:scale-110 lg:hidden">
-                <FiChevronRight className="text-gray-800 text-xl" />
-              </button>
-            </>
-          )}
-
-          {/* Zoom Hint */}
-          <div className="absolute bottom-4 right-4 bg-white/90 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-700 shadow-sm pointer-events-none opacity-0 lg:opacity-100 transition-opacity">
-            Click to zoom
-          </div>
         </div>
 
         {/* Action Buttons / Badge Area (Injected via children) */}
         {children}
-
-        {/* Thumbnails Grid (3 Columns) */}
-        {imageArray.length > 1 && (
-          <div className="grid grid-cols-3 gap-3">
-            {imageArray.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => handleThumbnailClick(index)}
-                className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 ${selectedIndex === index
-                  ? "border-primary-600 ring-2 ring-primary-50 ring-offset-2"
-                  : "border-transparent hover:border-gray-300"
-                  }`}>
-                <LazyImage
-                  src={image}
-                  alt={`${productName} thumbnail ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src =
-                      "https://via.placeholder.com/100x100?text=Thumbnail";
-                  }}
-                />
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox Modal (Simplified/Hidden) */}
       <AnimatePresence>
         {isLightboxOpen && (
           <motion.div
@@ -137,7 +96,7 @@ const ImageGallery = ({ images, productName = "Product", children }) => {
             onClick={() => setIsLightboxOpen(false)}>
             <button
               onClick={() => setIsLightboxOpen(false)}
-              className="absolute top-4 right-4 w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-colors z-10">
+              className="absolute top-4 right-4 w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white z-10">
               <FiX className="text-2xl" />
             </button>
 
@@ -151,34 +110,7 @@ const ImageGallery = ({ images, productName = "Product", children }) => {
                 src={imageArray[selectedIndex]}
                 alt={`${productName} - Full view`}
                 className="w-full h-full object-contain max-h-[90vh] rounded-lg"
-                onError={(e) => {
-                  e.target.src =
-                    "https://via.placeholder.com/800x800?text=Product+Image";
-                }}
               />
-
-              {/* Navigation in Lightbox */}
-              {imageArray.length > 1 && (
-                <>
-                  <button
-                    onClick={handlePrevious}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-colors">
-                    <FiChevronLeft className="text-2xl" />
-                  </button>
-                  <button
-                    onClick={handleNext}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-colors">
-                    <FiChevronRight className="text-2xl" />
-                  </button>
-                </>
-              )}
-
-              {/* Image Counter */}
-              {imageArray.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-lg text-sm">
-                  {selectedIndex + 1} / {imageArray.length}
-                </div>
-              )}
             </motion.div>
           </motion.div>
         )}
