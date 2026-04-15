@@ -79,19 +79,19 @@ const CartDrawer = () => {
               }
             }}
             style={{ willChange: "transform", transform: "translateZ(0)" }}
-            className="fixed right-0 top-0 h-full w-full sm:w-96 bg-white shadow-2xl z-[10000] flex flex-col">
+            className="fixed right-0 top-0 h-full w-full sm:w-[23rem] bg-white shadow-2xl z-[10000] flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800">Shopping Cart</h2>
+            <div className="flex items-center justify-between px-4 py-5 border-b border-gray-200">
+              <h2 className="text-[18px] font-bold text-slate-800">Shopping Cart</h2>
               <button
                 onClick={toggleCart}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                <FiX className="text-xl text-gray-600" />
+                className="p-1.5 rounded-full transition-colors">
+                <FiX className="text-[22px] text-slate-500" />
               </button>
             </div>
 
             {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="flex-1 overflow-y-auto px-4 py-4 bg-white">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <FiShoppingBag className="text-6xl text-gray-300 mb-4" />
@@ -104,23 +104,23 @@ const CartDrawer = () => {
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout">
-                  <div className="space-y-6">
+                  <div className="space-y-5">
                     {itemsByVendor.map((vendorGroup, vendorIndex) => (
                       <div key={vendorGroup.vendorId} className="space-y-3">
                         {/* Vendor Header */}
-                        <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg border border-primary-200/50 shadow-sm">
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0">
-                            <FiShoppingBag className="text-white text-xs" />
+                        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-violet-50 border border-violet-100">
+                          <div className="w-6 h-6 rounded-full bg-violet-500 flex items-center justify-center flex-shrink-0">
+                            <FiShoppingBag className="text-white text-[11px]" />
                           </div>
-                          <span className="text-sm font-bold text-primary-700 flex-1">
+                          <span className="text-sm font-bold text-violet-700 flex-1">
                             {vendorGroup.vendorName}
                           </span>
-                          <span className="text-xs font-semibold text-primary-600 bg-white px-2 py-1 rounded-md">
+                          <span className="text-sm font-bold text-violet-600 bg-white px-2.5 py-1 rounded-lg">
                             {formatPrice(vendorGroup.subtotal)}
                           </span>
                         </div>
                         {/* Vendor Items */}
-                        <div className="space-y-3 pl-2">
+                        <div className="space-y-3">
                           {vendorGroup.items.map((item, index) => (
                             <SwipeableCartItem
                               key={item.cartLineKey || `${item.id}-${index}`}
@@ -138,25 +138,30 @@ const CartDrawer = () => {
 
             {/* Footer */}
             {items.length > 0 && (
-              <div className="border-t border-gray-200 p-3 sm:p-6 bg-gray-50">
-                <div className="flex items-center justify-between mb-2 sm:mb-4">
-                  <span className="text-sm sm:text-lg font-semibold text-gray-800">
-                    Total:
-                  </span>
-                  <span className="text-lg sm:text-2xl font-bold text-primary-600">
-                    {formatPrice(total)}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1.5 sm:gap-2">
-                  <Link
-                    to={checkoutLink}
-                    onClick={toggleCart}
-                    className="w-full gradient-green text-white py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base text-center">
-                    Proceed to Checkout
-                  </Link>
+              <div className="sticky bottom-0 z-30 border-t border-gray-200 px-4 py-2 bg-white">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[16px] font-semibold text-gray-900">
+                        {formatPrice(total)}
+                      </p>
+                      <Link
+                        to={checkoutLink}
+                        onClick={toggleCart}
+                        className="mt-0 inline-block text-[13px] font-medium text-sky-600">
+                        View details
+                      </Link>
+                    </div>
+                    <Link
+                      to={checkoutLink}
+                      onClick={toggleCart}
+                      className="block min-w-[196px] rounded-[10px] bg-[#232323] px-5 py-2.5 text-center text-[15px] font-semibold text-white">
+                      Proceed to Payment
+                    </Link>
+                  </div>
                   <button
                     onClick={clearCart}
-                    className="w-full py-1.5 sm:py-2 text-sm sm:text-base text-gray-600 hover:text-red-600 font-medium transition-colors">
+                    className="w-full py-1.5 text-sm text-gray-600 hover:text-red-600 font-medium transition-colors">
                     Clear Cart
                   </button>
                 </div>

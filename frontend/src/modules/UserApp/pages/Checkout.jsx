@@ -365,7 +365,7 @@ const MobileCheckout = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="lg:px-4 lg:py-6">
+          <form onSubmit={handleSubmit} className="pb-20 lg:px-4 lg:py-6 lg:pb-0">
             <div className="lg:grid lg:grid-cols-12 lg:gap-8">
               {/* Left Column - Steps */}
               <div className="lg:col-span-8 space-y-6">

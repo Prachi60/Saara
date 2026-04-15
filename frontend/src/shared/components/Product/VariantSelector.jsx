@@ -127,11 +127,11 @@ const VariantSelector = ({ variants, onVariantChange, currentPrice }) => {
   return (
     <div className="space-y-6">
       {axes.map((axis) => (
-        <div key={axis.key} className="flex items-center gap-4">
-          <label className="text-sm shrink-0">
+        <div key={axis.key} className="grid grid-cols-[auto,1fr] items-start gap-x-4 gap-y-3">
+          <label className="text-sm shrink-0 pt-2">
             <span className="text-gray-500 font-medium">{axis.label}:</span>
           </label>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 min-w-0">
             {axis.values.map((option) => {
               const isSelected = selectedVariant?.[axis.key] === option;
               const isAvailable = isOptionAvailable(axis.key, option);
@@ -169,7 +169,7 @@ const VariantSelector = ({ variants, onVariantChange, currentPrice }) => {
                   key={`${axis.key}-${option}`}
                   onClick={() => handleOptionSelect(axis.key, option)}
                   disabled={!isAvailable}
-                  className={`relative px-5 py-2 rounded-xl text-base font-bold border-2 transition-all duration-300 ${isSelected
+                  className={`relative px-2.5 py-0.5 rounded-xl text-sm font-bold border-2 transition-all duration-300 ${isSelected
                       ? "border-teal-600 bg-teal-50 text-teal-700"
                       : isAvailable
                         ? "border-gray-200 hover:border-teal-400 bg-white text-gray-700"

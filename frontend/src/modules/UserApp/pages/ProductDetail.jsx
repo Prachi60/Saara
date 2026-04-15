@@ -409,6 +409,7 @@ const MobileProductDetail = () => {
       id: product.id,
       name: product.name,
       price: finalPrice,
+      originalPrice: product.originalPrice,
       image: product.image,
       quantity: quantity,
       variant: selectedVariant,
@@ -721,24 +722,24 @@ const MobileProductDetail = () => {
 
                   {/* Quantity */}
                   <div className="flex items-center justify-between pt-2">
-                    <div className="text-base font-medium text-slate-700">Quantity:</div>
-                    <div className="flex-1 flex items-center justify-between ml-8">
-                      <div className="flex items-center gap-6">
+                    <div className="text-sm font-medium text-slate-700">Quantity:</div>
+                    <div className="flex-1 flex items-center justify-between ml-6">
+                      <div className="flex items-center gap-4">
                         <button
                           onClick={() => handleQuantityChange(-1)}
-                          className="w-10 h-10 border border-gray-100 rounded-full flex items-center justify-center text-gray-400 text-lg shadow-sm"
+                          className="w-8 h-8 border border-gray-100 rounded-full flex items-center justify-center text-gray-400 text-base shadow-sm"
                         >
                           <FiMinus />
                         </button>
-                        <span className="text-xl font-bold text-slate-800">{quantity}</span>
+                        <span className="text-lg font-bold text-slate-800">{quantity}</span>
                         <button
                           onClick={() => handleQuantityChange(1)}
-                          className="w-10 h-10 border border-gray-100 rounded-full flex items-center justify-center text-gray-800 text-lg shadow-sm"
+                          className="w-8 h-8 border border-gray-100 rounded-full flex items-center justify-center text-gray-800 text-base shadow-sm"
                         >
                           <FiPlus />
                         </button>
                       </div>
-                      <span className="text-gray-400 text-xs text-right leading-tight max-w-[80px]">({selectedAvailableStock} available)</span>
+                      <span className="text-gray-400 text-[11px] text-right leading-tight max-w-[72px]">({selectedAvailableStock} available)</span>
                     </div>
                   </div>
                 </div>

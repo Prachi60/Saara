@@ -100,7 +100,7 @@ const MobileVerification = () => {
             transition={{ duration: 0.5 }}
             className="w-full max-w-md"
           >
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
               {/* Back Button */}
               <button
                 onClick={() => navigate(-1)}
@@ -128,7 +128,7 @@ const MobileVerification = () => {
                 </div>
 
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">Verification code</h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 break-words">
                   Enter the verification code we've sent to your{' '}
                   <span className="font-medium text-gray-900">{email || 'email'}</span>
                 </p>
@@ -136,7 +136,7 @@ const MobileVerification = () => {
 
               {/* Code Input Form */}
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="flex justify-center gap-3">
+                <div className="grid grid-cols-6 gap-2 sm:gap-3">
                   {codes.map((code, index) => (
                     <input
                       key={index}
@@ -148,7 +148,7 @@ const MobileVerification = () => {
                       onChange={(e) => handleChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
                       onPaste={index === 0 ? handlePaste : undefined}
-                      className={`w-14 h-14 rounded-full border-2 text-center text-xl font-semibold focus:outline-none transition-all ${code
+                      className={`w-full aspect-square min-w-0 rounded-full border-2 text-center text-lg sm:text-xl font-semibold focus:outline-none transition-all ${code
                           ? 'border-purple-500 bg-purple-50 text-purple-700'
                           : 'border-gray-200 focus:border-purple-500 text-gray-900'
                         }`}

@@ -99,6 +99,7 @@ const MobileProductCard = ({ product }) => {
       id: product.id,
       name: product.name,
       price: product.price,
+      originalPrice: product.originalPrice,
       image: product.image,
       quantity: 1,
       stockQuantity: product.stockQuantity,
