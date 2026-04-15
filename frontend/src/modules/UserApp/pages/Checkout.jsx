@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
 import {
   FiMapPin,
   FiCreditCard,
@@ -351,21 +352,21 @@ const MobileCheckout = () => {
           {/* Header */}
           <div className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
             {/* Title Bar */}
-            <div className="px-4 py-3 flex items-center gap-3">
+            <div className="px-4 py-1.5 flex items-center gap-3">
               <button
                 onClick={() => navigate(-1)}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <FiArrowLeft className="text-xl text-gray-700" />
               </button>
-              <h1 className="text-xl font-bold text-gray-800">Checkout</h1>
+              <h1 className="text-lg font-bold text-gray-800">Checkout</h1>
             </div>
             {/* Steps Bar */}
-            <div className="px-4 pb-3">
+            <div className="px-4 pb-1">
               <MobileCheckoutSteps currentStep={step} totalSteps={2} />
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="pb-20 lg:px-4 lg:py-6 lg:pb-0">
+          <form onSubmit={handleSubmit} className="pb-16 lg:px-4 lg:py-6 lg:pb-0">
             <div className="lg:grid lg:grid-cols-12 lg:gap-8">
               {/* Left Column - Steps */}
               <div className="lg:col-span-8 space-y-6">
@@ -375,7 +376,7 @@ const MobileCheckout = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="px-4 py-4 lg:p-0">
-                    <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <h2 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
                       <FiTruck className="text-primary-600" />
                       Shipping Information
                     </h2>
@@ -474,75 +475,6 @@ const MobileCheckout = () => {
                           />
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Address
-                        </label>
-                        <textarea
-                          name="address"
-                          value={formData.address}
-                          onChange={handleInputChange}
-                          required
-                          rows={3}
-                          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            City
-                          </label>
-                          <input
-                            type="text"
-                            name="city"
-                            value={formData.city}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            State
-                          </label>
-                          <input
-                            type="text"
-                            name="state"
-                            value={formData.state}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            ZIP Code
-                          </label>
-                          <input
-                            type="text"
-                            name="zipCode"
-                            value={formData.zipCode}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Country
-                          </label>
-                          <input
-                            type="text"
-                            name="country"
-                            value={formData.country}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
-                          />
-                        </div>
-                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -553,7 +485,7 @@ const MobileCheckout = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="px-4 py-4 lg:p-0">
-                    <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <h2 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
                       <FiCreditCard className="text-primary-600" />
                       Payment Method
                     </h2>
@@ -573,7 +505,7 @@ const MobileCheckout = () => {
                             onChange={handleInputChange}
                             className="w-5 h-5 text-primary-500"
                           />
-                          <span className="font-semibold text-gray-800 capitalize text-base">
+                          <span className="font-semibold text-gray-800 capitalize text-sm">
                             {method === "card"
                               ? "Credit/Debit Card"
                               : method === "cash"
@@ -605,7 +537,7 @@ const MobileCheckout = () => {
                                 onChange={(e) => setShippingOption(e.target.value)}
                                 className="w-5 h-5 text-primary-500 mr-3"
                               />
-                              <span className="font-semibold text-gray-800 text-base">
+                              <span className="font-semibold text-gray-800 text-sm">
                                 Standard Shipping
                               </span>
                               <p className="text-xs text-gray-600">
@@ -630,7 +562,7 @@ const MobileCheckout = () => {
                                 onChange={(e) => setShippingOption(e.target.value)}
                                 className="w-5 h-5 text-primary-500 mr-3"
                               />
-                              <span className="font-semibold text-gray-800 text-base">
+                              <span className="font-semibold text-gray-800 text-sm">
                                 Express Shipping
                               </span>
                               <p className="text-xs text-gray-600">
@@ -787,27 +719,31 @@ const MobileCheckout = () => {
               </div>
             </div>
 
-            {/* Navigation Buttons (Mobile Fixed Bottom) */}
-            <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 safe-area-bottom lg:hidden">
-              <div className="flex gap-3">
-                {step > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setStep(step - 1)}
-                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors">
-                    Back
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  disabled={step === 2 && isPlacingOrder}
-                  className="flex-1 gradient-green text-white py-3 rounded-xl font-semibold hover:shadow-glow-green transition-all duration-300">
-                  {step === 2 ? (isPlacingOrder ? "Placing..." : "Place Order") : "Continue"}
-                </button>
-              </div>
-            </div>
           </form>
         </div>
+
+        {createPortal(
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 safe-area-bottom lg:hidden">
+            <div className="flex gap-3">
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setStep(step - 1)}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors">
+                  Back
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={step === 2 && isPlacingOrder}
+                className="flex-1 gradient-green text-white py-3 rounded-xl font-semibold hover:shadow-glow-green transition-all duration-300">
+                {step === 2 ? (isPlacingOrder ? "Placing..." : "Place Order") : "Continue"}
+              </button>
+            </div>
+          </div>,
+          document.body
+        )}
 
         {/* Address Form Modal */}
         <AnimatePresence>

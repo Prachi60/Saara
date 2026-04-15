@@ -16,6 +16,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, show
     location.pathname === '/verification';
 
   const isCheckoutPage = location.pathname === '/checkout';
+  const isAddressesPage = location.pathname === '/addresses';
 
   // Respect the showBottomNav prop and hide on auth pages
   const shouldShowBottomNav = showBottomNav && !isAuthPage;
@@ -26,6 +27,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, show
     location.pathname !== '/wishlist' &&
     location.pathname !== '/profile' &&
     location.pathname !== '/orders' &&
+    !isAddressesPage &&
     !location.pathname.startsWith('/product/') &&
     !isCheckoutPage;
 
@@ -39,7 +41,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, show
 
   return (
     <>
-      {!isAuthPage && !isCheckoutPage && <DesktopHeader />}
+      {!isAuthPage && !isCheckoutPage && !isAddressesPage && <DesktopHeader />}
       {shouldShowHeader && <MobileHeader />}
       <main
         className={`min-h-screen w-full overflow-x-hidden md:container md:mx-auto md:px-12 lg:px-24 xl:px-40 ${shouldShowBottomNav ? 'pb-20' : ''} ${showCartBar ? 'pb-24' : ''}`}

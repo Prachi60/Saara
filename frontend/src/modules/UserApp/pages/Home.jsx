@@ -11,6 +11,9 @@ import RecommendedSection from "../components/Mobile/RecommendedSection";
 import FeaturedVendorsSection from "../components/Mobile/FeaturedVendorsSection";
 import BrandLogosScroll from "../components/Mobile/BrandLogosScroll";
 import MobileCategoryGrid from "../components/Mobile/MobileCategoryGrid";
+import CategoryInFocus from "../components/Mobile/CategoryInFocus";
+import DealsSection from "../components/Mobile/DealsSection";
+import TrustBar from "../components/Mobile/TrustBar";
 import LazyImage from "../../../shared/components/LazyImage";
 import {
   getMostPopular,
@@ -500,10 +503,10 @@ const MobileHome = () => {
             transition: isPulling ? "none" : "transform 0.3s ease-out",
           }}>
           {/* Hero Banner */}
-          <div className="px-4 py-4">
+          <div className="px-4 pb-4 pt-2">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div
-                className="relative w-full h-48 md:h-80 lg:h-[400px] xl:h-[450px] rounded-xl md:rounded-2xl overflow-hidden lg:col-span-2"
+                className="relative w-full h-40 md:h-80 lg:h-[400px] xl:h-[450px] rounded-xl md:rounded-2xl overflow-hidden lg:col-span-2"
                 data-carousel
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
@@ -605,103 +608,48 @@ const MobileHome = () => {
           {/* Categories */}
           <MobileCategoryGrid />
 
-          {/* Featured Vendors Section */}
-          <FeaturedVendorsSection vendors={computedVendors} />
 
           {/* Animated Banner */}
           <AnimatedBanner banners={promoBanners} />
 
-          {/* New Arrivals */}
-          <NewArrivalsSection products={computedNewArrivals} />
-
-
-
-          {/* Most Popular */}
-          <div className="px-4 py-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Most Popular</h2>
+          {/* Featured Products */}
+          <div className="py-4 bg-white mb-2">
+            <div className="px-4 flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-800 tracking-tight">Featured Products</h2>
               <Link
                 to="/search"
-                className="text-sm text-primary-600 font-semibold">
+                className="text-sm text-primary-600 font-semibold hover:text-primary-700 transition-colors">
                 See All
               </Link>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-              {computedMostPopular.map((product, index) => (
+            <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+              {computedMostPopular.slice(0, 6).map((product, index) => (
                 <motion.div
                   key={product.id}
-                  className={index === 5 ? "xl:hidden" : ""}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}>
-                  <ProductCard product={product} enhancedLayout={true} />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Daily Deals */}
-          <DailyDealsSection products={computedDailyDeals} />
-
-
-
-          {/* Flash Sale */}
-          {computedFlashSale.length > 0 && (
-            <div className="px-4 py-4 bg-gradient-to-br from-red-50 to-orange-50">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-800">
-                    Flash Sale
-                  </h2>
-                  <p className="text-xs text-gray-600">Limited time offers</p>
-                </div>
-                <Link
-                  to="/flash-sale"
-                  className="text-sm text-primary-600 font-semibold">
-                  See All
-                </Link>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-                {computedFlashSale.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    className={index === 5 ? "xl:hidden" : ""}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}>
-                    <ProductCard product={product} isFlashSale={true} />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Trending Items */}
-          <div className="px-4 py-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Trending Now</h2>
-              <Link
-                to="/search"
-                className="text-sm text-primary-600 font-semibold">
-                See All
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-              {computedTrending.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  className={index === 5 ? "hidden xl:block 2xl:hidden" : ""}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}>
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="min-w-[170px] w-[170px] flex-shrink-0">
                   <ProductCard product={product} />
                 </motion.div>
               ))}
             </div>
           </div>
 
-          {/* Recommended for You */}
-          <RecommendedSection products={computedRecommended} />
+          {/* Category In Focus */}
+          <CategoryInFocus />
+
+          {/* Deals Section */}
+          <DealsSection />
+
+          {/* Trust Bar */}
+          <TrustBar />
+
+
+
+
+
+
 
           {/* Tagline Section */}
           <motion.div
@@ -709,7 +657,7 @@ const MobileHome = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="px-4 py-12 text-left">
+            className="px-4 py-6 text-left">
             <motion.h2
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-400 leading-tight flex items-center justify-start gap-3 flex-wrap"
               initial={{ opacity: 0 }}

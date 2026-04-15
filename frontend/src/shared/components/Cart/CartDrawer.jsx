@@ -153,7 +153,7 @@ const CartDrawer = () => {
                       </Link>
                     </div>
                     <Link
-                      to={checkoutLink}
+                      to="/addresses"
                       onClick={toggleCart}
                       className="block min-w-[196px] rounded-[10px] bg-[#232323] px-5 py-2.5 text-center text-[15px] font-semibold text-white">
                       Proceed to Payment

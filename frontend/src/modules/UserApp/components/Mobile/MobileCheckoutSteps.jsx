@@ -2,7 +2,7 @@ import { FiCheck } from "react-icons/fi";
 
 const MobileCheckoutSteps = ({ currentStep, totalSteps = 3 }) => {
   return (
-    <div className="flex items-center justify-center mb-6 px-4">
+    <div className="flex items-center justify-center mb-2 px-4">
       <div className="flex items-center gap-2 w-full max-w-md ml-8">
         {Array.from({ length: totalSteps }, (_, index) => {
           const step = index + 1;
@@ -23,7 +23,7 @@ const MobileCheckoutSteps = ({ currentStep, totalSteps = 3 }) => {
                   {isCompleted ? <FiCheck className="text-lg" /> : step}
                 </div>
                 <span
-                  className={`text-xs font-semibold mt-2 ${
+                  className={`text-xs font-semibold mt-1 ${
                     isCurrent
                       ? "text-primary-600"
                       : isCompleted

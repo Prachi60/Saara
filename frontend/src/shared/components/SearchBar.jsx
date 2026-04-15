@@ -275,7 +275,7 @@ const SearchBar = () => {
             onBlur={handleInputBlur}
             onKeyDown={handleKeyDown}
             placeholder={isListening ? "Listening..." : "Search products..."}
-            className="w-full pl-12 pr-12 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400"
+            className="w-full pl-12 pr-12 py-2 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400"
           />
           <button
             type="button"

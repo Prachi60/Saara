@@ -67,12 +67,10 @@ const ProductCard = ({
     if (!isLargeScreen) {
       setIsAdding(true);
 
-      // Get button position
       const buttonRect = buttonRef.current?.getBoundingClientRect();
       const startX = buttonRect ? buttonRect.left + buttonRect.width / 2 : 0;
       const startY = buttonRect ? buttonRect.top + buttonRect.height / 2 : 0;
 
-      // Get cart bar position (prefer cart bar over header icon)
       setTimeout(() => {
         const cartBar = document.querySelector("[data-cart-bar]");
         let endX = window.innerWidth / 2;
@@ -83,7 +81,6 @@ const ProductCard = ({
           endX = cartRect.left + cartRect.width / 2;
           endY = cartRect.top + cartRect.height / 2;
         } else {
-          // Fallback to cart icon in header
           const cartIcon = document.querySelector("[data-cart-icon]");
           if (cartIcon) {
             const cartRect = cartIcon.getBoundingClientRect();
@@ -169,49 +166,23 @@ const ProductCard = ({
     }
   };
 
-  // Calculate sold percentage for flash sale (mock logic)
-  const soldPercentage = product.stockQuantity ? Math.min(95, Math.floor(100 - (product.stockQuantity / 2))) : 75;
-  const productLabel =
-    product.categoryName || product.brandName || product.unit || "Popular pick";
-  const productSupportText =
-    product.description?.trim() ||
-    [
-      product.vendorName ? `From ${product.vendorName}` : null,
-      productLabel ? `${productLabel}` : null,
-      product.unit ? `${product.unit} item` : null,
-    ]
-      .filter(Boolean)
-      .slice(0, 2)
-      .join(" • ");
-  const stockLabel =
-    product.stock === "out_of_stock"
-      ? "Out of stock"
-      : product.stock === "low_stock"
-        ? product.stockQuantity
-          ? `Only ${product.stockQuantity} left`
-          : "Limited stock"
-        : product.stockQuantity
-          ? `${product.stockQuantity}+ in stock`
-          : "Ready to ship";
-
   return (
     <>
       <motion.div
         whileHover={{ y: -4 }}
         style={{ willChange: "transform", transform: "translateZ(0)" }}
-        className={`bg-white rounded-2xl overflow-hidden group cursor-pointer h-full flex flex-col hover:shadow-xl transition-all duration-300 border border-gray-100/60 ${isFlashSale ? "border-red-100 bg-red-50/10" : ""
-          }`}
+        className="bg-white rounded-2xl overflow-hidden group cursor-pointer h-full flex flex-col hover:shadow-xl transition-all duration-300 border border-gray-100/60"
         {...longPressHandlers}>
         <div className="relative">
           {/* Favorite Icon */}
           <div className="absolute top-2 right-2 z-10">
             <button
               onClick={handleFavorite}
-              className="p-1.5 bg-white/80 backdrop-blur-md rounded-full shadow-sm transition-all duration-300 group/heart hover:bg-white hover:scale-110">
+              className="p-1.5 bg-white/90 backdrop-blur-md rounded-full shadow-sm transition-all duration-300 group/heart hover:bg-white hover:scale-110">
               <FiHeart
                 className={`text-sm transition-colors duration-300 ${isFavorite
                   ? "text-red-500 fill-red-500"
-                  : "text-gray-500 group-hover/heart:text-red-400"
+                  : "text-gray-500 group-heart:text-red-400"
                   }`}
               />
             </button>
@@ -220,31 +191,14 @@ const ProductCard = ({
           {/* Product Image */}
           <Link to={productLink} className="block">
             <div
-              className={`w-full bg-gray-50 flex items-center justify-center overflow-hidden relative group-hover:bg-gray-100/50 transition-colors ${
-                enhancedLayout
-                  ? "h-40 sm:h-48 md:h-56 lg:h-52"
-                  : "h-36 md:h-48 lg:h-40"
-              }`}>
-              {product.originalPrice && (
-                <div className={`absolute top-0 left-0 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-br-xl z-10 shadow-sm ${isFlashSale ? "bg-red-500" : "bg-red-500"}`}>
-                  {Math.round(
-                    ((product.originalPrice - product.price) /
-                      product.originalPrice) *
-                    100
-                  )}% OFF
-                </div>
-              )}
-              {isFlashSale && (
-                <div className="absolute top-0 right-0 p-1">
-                  <div className="bg-yellow-400/90 backdrop-blur-sm text-gray-900 text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse uppercase tracking-wider">
-                    Hot Deal
-                  </div>
-                </div>
-              )}
+              className={`w-full bg-gray-50 flex items-center justify-center overflow-hidden relative group-hover:bg-gray-100/50 transition-colors ${enhancedLayout
+                  ? "h-40 sm:h-48 md:h-56"
+                  : "h-36 md:h-44"
+                }`}>
               <LazyImage
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-cover transition-colors duration-500 ease-out mix-blend-multiply"
+                className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                 style={{ willChange: "transform", transform: "translateZ(0)" }}
                 onError={(e) => {
                   e.target.src = getPlaceholderImage(300, 300, "Product Image");
@@ -254,143 +208,90 @@ const ProductCard = ({
           </Link>
         </div>
 
-          {/* Product Info */}
-        <div
-          className={`flex-1 flex flex-col bg-white ${
-            enhancedLayout ? "p-2.5 md:p-3" : "p-2 md:p-3"
-          }`}>
-          
+        {/* Product Info */}
+        <div className="p-2 flex-1 flex flex-col">
+          {/* Featured Tag */}
+          <div className="mb-1">
+            <span className="text-[9px] font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md uppercase tracking-wide">
+              Bestseller
+            </span>
+          </div>
+
           <Link to={productLink} className="block mb-0.5">
-            <h3
-              className={`font-bold text-gray-900 transition-colors group-hover:text-primary-600 leading-tight ${
-                enhancedLayout
-                  ? "text-[13px] md:text-[15px] line-clamp-1"
-                  : "line-clamp-1 text-[12px] md:text-[14px]"
-              }`}>
+            <h4 className="text-[10px] font-medium text-gray-400 uppercase tracking-tight truncate">
+              {product.brandName || "Premium Brand"}
+            </h4>
+            <h3 className="text-xs font-semibold text-gray-800 line-clamp-1 leading-tight mb-1">
               {product.name}
             </h3>
           </Link>
 
-          <div className="flex items-center flex-wrap gap-1 mb-1">
-            <p className="text-[10px] md:text-[11px] font-medium text-gray-400 capitalize">
-              {product.unit}
-            </p>
-            {product.unit && productLabel && (
-              <span className="h-0.5 w-0.5 rounded-full bg-gray-300" />
-            )}
-            {enhancedLayout && (
-              <span className="text-[9px] md:text-[10px] font-bold text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                {productLabel}
-              </span>
-            )}
-          </div>
-
-          {enhancedLayout && (
-            <p className="text-[10px] md:text-[11px] text-gray-500 line-clamp-1 mb-1.5 leading-snug">
-              {productSupportText}
-            </p>
-          )}
-
-          {/* Rating and Stock */}
-          <div className={`flex items-center justify-between mt-auto mb-2`}>
-            {product.rating !== undefined && !hideRating && (
-              <div className="flex items-center gap-1">
-                <span className="text-[11px] md:text-xs font-bold text-gray-700">{product.rating || 0}</span>
-                <FiStar className="text-[9px] md:text-[11px] text-yellow-400 fill-yellow-400" />
-                <span className="text-[9px] md:text-[10px] text-gray-400 ml-0.5 hidden md:inline">
-                  ({product.reviewCount || 0})
-                </span>
-              </div>
-            )}
-            {enhancedLayout && !isFlashSale && (
-              <span
-                className={`text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider ${
-                  product.stock === "out_of_stock"
-                    ? "bg-red-50 text-red-500"
-                    : product.stock === "low_stock"
-                      ? "bg-amber-50 text-amber-600"
-                      : "bg-emerald-50 text-emerald-600"
-                }`}>
-                {stockLabel}
-              </span>
-            )}
-            {isFlashSale && (
-              <span className="text-[9px] font-bold text-red-500 uppercase tracking-tighter">
-                Ending Soon
-              </span>
-            )}
-          </div>
-
-          {/* Flash Sale Progress Bar */}
-          {isFlashSale && (
-            <div className="mb-2 space-y-1 bg-gray-50 p-1 rounded border border-gray-100">
-              <div className="flex justify-between text-[8px] md:text-[9px] font-bold">
-                <span className="text-gray-500 uppercase">Available</span>
-                <span className="text-orange-600">{soldPercentage}% Sold</span>
-              </div>
-              <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${soldPercentage}%` }}
-                  transition={{ duration: 1, delay: 0.2 }}
-                  className="h-full bg-gradient-to-r from-red-500 to-orange-400"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Price */}
-          <div className={`flex flex-wrap items-center gap-1.5 md:gap-2 mb-2`}>
-            <span className={`text-[15px] md:text-[18px] font-extrabold tracking-tight ${isFlashSale ? "text-red-600" : "text-gray-900"}`}>
+          {/* Price Section */}
+          <div className="flex items-center flex-wrap gap-1.5 mb-1">
+            <span className="text-base font-bold text-gray-900">
               {formatPrice(product.price)}
             </span>
             {product.originalPrice && (
-              <span className="text-[10px] md:text-[11px] text-gray-400 line-through font-semibold whitespace-nowrap">
-                {formatPrice(product.originalPrice)}
-              </span>
+              <>
+                <span className="text-[11px] text-gray-400 line-through font-medium">
+                  {formatPrice(product.originalPrice)}
+                </span>
+                <span className="text-[11px] text-green-600 font-semibold">
+                  {Math.round(
+                    ((product.originalPrice - product.price) /
+                      product.originalPrice) *
+                    100
+                  )}% Off
+                </span>
+              </>
             )}
           </div>
 
-          {/* Add/Remove Button */}
-          {isInCart ? (
-            <motion.button
-              type="button"
-              onClick={handleRemoveFromCart}
-              whileTap={{ scale: 0.95 }}
-              className="w-full py-1.5 md:py-2 rounded-xl font-bold text-xs md:text-sm bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-all duration-300 flex items-center justify-center gap-2">
-              <FiTrash2 className="text-[12px] md:text-sm" />
-              <span>Remove</span>
-            </motion.button>
-          ) : (
-            <motion.button
-              ref={buttonRef}
-              type="button"
-              onClick={handleAddToCart}
-              disabled={product.stock === "out_of_stock" || isAdding}
-              whileTap={{ scale: 0.95 }}
-              animate={isAdding ? { scale: [1, 1.05, 1] } : {}}
-              style={{ willChange: "transform", transform: "translateZ(0)" }}
-              className={`w-full ${enhancedLayout ? "py-1.5 md:py-2" : "py-1.5"} rounded-xl font-bold text-[11px] md:text-[13px] transition-all duration-300 flex items-center justify-center gap-1.5 overflow-hidden relative group/btn ${product.stock === "out_of_stock"
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                : isFlashSale
-                  ? "bg-red-500 text-white shadow-md hover:bg-red-600 hover:-translate-y-0.5"
-                  : "bg-emerald-500 text-white shadow hover:bg-emerald-600 hover:shadow-md hover:-translate-y-0.5"
-                }`}>
-              <motion.div
-                className="z-10 relative flex items-center justify-center"
-                animate={isAdding ? { rotate: [0, -10, 10, -10, 0] } : {}}
-                transition={{ duration: 0.5 }}>
-                <FiShoppingBag className="text-[12px] md:text-sm" />
-              </motion.div>
-              <span className="z-10 relative">
-                {product.stock === "out_of_stock"
-                  ? "Out of Stock"
-                  : isAdding
-                    ? "Adding..."
-                    : <><span className="md:hidden">Add</span><span className="hidden md:inline">Add to Cart</span></>}
+          {/* Rating Row */}
+          <div className="flex items-center justify-between mt-auto">
+            <div className="flex items-center gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <FiStar
+                  key={i}
+                  className={`text-[10px] ${i < Math.floor(product.rating || 4)
+                      ? "text-gray-400 fill-gray-400"
+                      : "text-gray-200"
+                    }`}
+                />
+              ))}
+              <span className="text-[10px] text-gray-400 font-medium ml-1">
+                ({product.reviewCount || 47})
               </span>
-            </motion.button>
-          )}
+            </div>
+          </div>
+
+          {/* Add to Cart Button */}
+          <div className="mt-2">
+            {isInCart ? (
+              <motion.button
+                type="button"
+                onClick={handleRemoveFromCart}
+                whileTap={{ scale: 0.95 }}
+                className="w-full py-2 rounded-xl font-bold text-xs bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-all flex items-center justify-center gap-2">
+                <FiTrash2 className="text-sm" />
+                <span>Remove</span>
+              </motion.button>
+            ) : (
+              <motion.button
+                ref={buttonRef}
+                type="button"
+                onClick={handleAddToCart}
+                disabled={product.stock === "out_of_stock" || isAdding}
+                whileTap={{ scale: 0.95 }}
+                className={`w-full py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 ${product.stock === "out_of_stock"
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 shadow-emerald-200"
+                  }`}>
+                <FiShoppingBag className="text-sm" />
+                <span>{isAdding ? "Adding..." : "Add"}</span>
+              </motion.button>
+            )}
+          </div>
         </div>
       </motion.div>
 

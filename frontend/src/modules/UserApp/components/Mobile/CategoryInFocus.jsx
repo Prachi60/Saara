@@ -1,0 +1,83 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import LazyImage from '../../../../shared/components/LazyImage';
+
+const CategoryInFocus = () => {
+  const focusItems = [
+    { name: 'Conditioner', image: 'https://images.pexels.com/photos/4465124/pexels-photo-4465124.jpeg?auto=compress&cs=tinysrgb&w=200' },
+    { name: 'Foundation', image: 'https://images.pexels.com/photos/3373736/pexels-photo-3373736.jpeg?auto=compress&cs=tinysrgb&w=200' },
+    { name: 'Blush', image: 'https://images.pexels.com/photos/2533266/pexels-photo-2533266.jpeg?auto=compress&cs=tinysrgb&w=200' },
+    { name: 'Lipsticks', image: 'https://images.pexels.com/photos/2533261/pexels-photo-2533261.jpeg?auto=compress&cs=tinysrgb&w=200' },
+    { name: 'Mascara', image: 'https://images.pexels.com/photos/3373746/pexels-photo-3373746.jpeg?auto=compress&cs=tinysrgb&w=200' },
+  ];
+
+  return (
+    <div className="py-6 bg-white">
+      <div className="px-4 mb-4">
+        <h2 className="text-xl font-bold text-gray-900 tracking-tight">Category In Focus</h2>
+      </div>
+
+      {/* Main Banner */}
+      <div className="px-4 mb-6">
+        <motion.div 
+          whileTap={{ scale: 0.98 }}
+          className="relative rounded-2xl overflow-hidden aspect-[16/9] shadow-lg">
+          <img 
+            src="https://images.pexels.com/photos/3738339/pexels-photo-3738339.jpeg?auto=compress&cs=tinysrgb&w=1200" 
+            alt="Beauty Banner"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/20 to-transparent p-5 flex flex-col justify-end">
+            <div className="max-w-[70%]">
+              <h3 className="text-white text-lg font-black leading-tight uppercase mb-1">
+                BEST OF <br /> GLOBAL BEAUTY
+              </h3>
+              <div className="bg-white/20 backdrop-blur-md rounded-lg px-2 py-1 w-fit mb-2">
+                <p className="text-white text-lg font-black">Up To 30% Off</p>
+              </div>
+              <p className="text-white/80 text-[10px] font-medium leading-tight">
+                Complimentary Gifts On Select Brands
+              </p>
+            </div>
+            {/* Mock Global Store Logo */}
+            <div className="absolute top-4 right-4 text-right">
+              <p className="text-white text-[8px] font-bold tracking-widest opacity-80">NYKAA</p>
+              <p className="text-white text-xs font-black tracking-tighter">GLOBAL</p>
+              <p className="text-white text-[8px] font-bold opacity-80">STORE</p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Circular Sub-categories */}
+      <div className="flex gap-1.5 overflow-x-auto pb-4 scrollbar-hide px-4">
+        {focusItems.map((item, index) => (
+          <Link 
+            key={index}
+            to={`/search?q=${encodeURIComponent(item.name)}`}
+            className="flex flex-col items-center gap-1 flex-shrink-0 w-[72px]">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+              className="w-16 h-16 rounded-full overflow-hidden relative shadow-md border-2 border-white ring-1 ring-blue-100">
+              {/* Sky blue background as in screenshot */}
+              <div className="absolute inset-0 bg-gradient-to-b from-blue-300 to-blue-400 opacity-60" />
+              <img 
+                src={item.image} 
+                alt={item.name}
+                className="w-full h-full object-cover relative z-10 p-1 rounded-full"
+              />
+            </motion.div>
+            <span className="text-[10px] font-bold text-gray-700 text-center leading-tight">
+              {item.name}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default CategoryInFocus;

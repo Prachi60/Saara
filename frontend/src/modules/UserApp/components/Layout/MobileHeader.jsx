@@ -2,9 +2,13 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
   FiShoppingBag,
+  FiHeart,
+  FiBell,
 } from "react-icons/fi";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCartStore, useUIStore } from "../../../../shared/store/useStore";
+import { useWishlistStore } from "../../../../shared/store/wishlistStore";
+import { useUserNotificationStore } from "../../store/userNotificationStore";
 import { useAuthStore } from "../../../../shared/store/authStore";
 import { appLogo } from "../../../../data/logos";
 import { motion } from "framer-motion";
@@ -45,6 +49,11 @@ const MobileHeader = () => {
   const location = useLocation();
 
   const itemCount = useCartStore((state) => state.getItemCount());
+  const wishlistCount = useWishlistStore((state) => state.getItemCount());
+  const unreadCount = useUserNotificationStore((state) => state.unreadCount);
+  const ensureNotifications = useUserNotificationStore(
+    (state) => state.ensureHydrated
+  );
   const toggleCart = useUIStore((state) => state.toggleCart);
   const cartAnimationTrigger = useUIStore(
     (state) => state.cartAnimationTrigger
@@ -194,6 +203,13 @@ const MobileHeader = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Hydrate notifications on mount if authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      ensureNotifications();
+    }
+  }, [isAuthenticated, ensureNotifications]);
+
   // Calculate animation positions after component mounts
   useEffect(() => {
     const calculatePositions = () => {
@@ -316,11 +332,11 @@ const MobileHeader = () => {
         damping: 30,
         mass: 0.8,
       }}>
-      <div ref={headerContentRef} className="px-4 py-3 overflow-visible">
+      <div ref={headerContentRef} className="px-4 pt-4 pb-1.5 overflow-visible">
         {/* First Row: Logo and Actions */}
         <motion.div
           ref={topRowRef}
-          className="flex items-center justify-between gap-3 mb-3"
+          className="flex items-center justify-between gap-3 mb-1.5"
           initial={false}
           animate={{
             opacity: isTopRowVisible ? 1 : 0,
@@ -346,7 +362,7 @@ const MobileHeader = () => {
                   <img
                     src={appLogo.src}
                     alt={appLogo.alt}
-                    className="h-20 sm:h-24 w-auto object-contain origin-left relative z-[10004]"
+                    className="h-10 sm:h-12 w-auto object-contain origin-left relative z-[10004]"
                     onError={(e) => {
                       // Hide image if logo doesn't exist
                       e.target.style.display = "none";
@@ -374,7 +390,25 @@ const MobileHeader = () => {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* Wishlist Button */}
+            <Link
+              to="/wishlist"
+              className="relative p-2.5 hover:bg-white/50 rounded-full transition-all duration-300"
+            >
+              <FiHeart className="text-xl text-gray-700" />
+              {wishlistCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
+                  style={{ backgroundColor: "#ffc101" }}
+                >
+                  {wishlistCount > 9 ? "9+" : wishlistCount}
+                </motion.span>
+              )}
+            </Link>
+
             {/* Cart Button */}
             <motion.button
               ref={cartRef}
@@ -395,12 +429,30 @@ const MobileHeader = () => {
                   key={itemCount}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
                   style={{ backgroundColor: "#ffc101" }}>
                   {itemCount > 9 ? "9+" : itemCount}
                 </motion.span>
               )}
             </motion.button>
+
+            {/* Notification Button */}
+            <Link
+              to="/notifications"
+              className="relative p-2.5 hover:bg-white/50 rounded-full transition-all duration-300"
+            >
+              <FiBell className="text-xl text-gray-700" />
+              {unreadCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
+                  style={{ backgroundColor: "#ffc101" }}
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </motion.span>
+              )}
+            </Link>
           </div>
         </motion.div>
 

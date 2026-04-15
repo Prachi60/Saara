@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { FiMapPin, FiEdit, FiTrash2, FiPlus, FiCheck, FiX, FiArrowLeft } from 'react-icons/fi';
+import { FiMapPin, FiEdit, FiTrash2, FiCheck, FiX, FiArrowLeft } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import MobileLayout from "../components/Layout/MobileLayout";
@@ -12,7 +12,7 @@ import { useAuthStore } from '../../../shared/store/authStore';
 
 const MobileAddresses = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { addresses, addAddress, updateAddress, deleteAddress, setDefaultAddress, fetchAddresses, isLoading } =
     useAddressStore();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -32,11 +32,17 @@ const MobileAddresses = () => {
 
   const onSubmit = async (data) => {
     try {
+      const payload = {
+        ...data,
+        fullName: editingAddress?.fullName || user?.name || 'Customer',
+        phone: editingAddress?.phone || user?.phone || '0000000000',
+      };
+
       if (editingAddress) {
-        await updateAddress(editingAddress.id, data);
+        await updateAddress(editingAddress.id, payload);
         toast.success('Address updated successfully!');
       } else {
-        await addAddress(data);
+        await addAddress(payload);
         toast.success('Address added successfully!');
       }
       reset();
@@ -73,24 +79,17 @@ const MobileAddresses = () => {
   return (
     <ProtectedRoute>
       <PageTransition>
-        <MobileLayout showBottomNav={true} showCartBar={true}>
+        <MobileLayout showBottomNav={true} showCartBar={!isFormOpen}>
           <div className="w-full pb-24">
-            {/* Header */}
-            <div className="px-4 py-4 bg-white border-b border-gray-200 sticky top-1 z-30">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="px-4 py-4 bg-white border-b border-gray-200">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => navigate(-1)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
                   <FiArrowLeft className="text-xl text-gray-700" />
                 </button>
-                <h1 className="text-xl font-bold text-gray-800 flex-1">Saved Addresses</h1>
-                <button
-                  onClick={() => setIsFormOpen(true)}
-                  className="p-2 gradient-green text-white rounded-xl hover:shadow-glow-green transition-all"
-                >
-                  <FiPlus className="text-xl" />
-                </button>
+                <h1 className="text-xl font-bold text-gray-800 flex-1 text-center mr-10">Address</h1>
               </div>
             </div>
 
@@ -103,8 +102,8 @@ const MobileAddresses = () => {
               ) : addresses.length === 0 ? (
                 <div className="text-center py-12">
                   <FiMapPin className="text-6xl text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">No addresses saved</h3>
-                  <p className="text-gray-600 mb-6">Add your first address to get started</p>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">No addresses saved</h3>
+                  <p className="text-sm text-gray-600 mb-6">Add your first address to get started</p>
                   <button
                     onClick={() => setIsFormOpen(true)}
                     className="gradient-green text-white px-6 py-3 rounded-xl font-semibold"
@@ -114,69 +113,96 @@ const MobileAddresses = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => setIsFormOpen(true)}
+                      className="rounded-md bg-[#e7f7f5] px-5 py-3 text-[15px] font-semibold text-[#0f5c56] shadow-sm"
+                    >
+                      Add New Address
+                    </button>
+                  </div>
                   {addresses.map((address) => (
                     <motion.div
                       key={address.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="glass-card rounded-2xl p-4"
+                      className="rounded-3xl bg-white p-5 shadow-sm border border-gray-100"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-start gap-3 flex-1">
-                          <FiMapPin className="text-primary-600 text-xl mt-0.5 flex-shrink-0" />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-bold text-gray-800 text-base">{address.name}</h3>
-                              {address.isDefault && (
-                                <span className="px-2 py-0.5 bg-primary-100 text-primary-700 rounded text-xs font-semibold">
-                                  Default
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-600 mb-1">{address.fullName}</p>
-                            <p className="text-sm text-gray-600 mb-1">{address.address}</p>
-                            <p className="text-sm text-gray-600">
-                              {address.city}, {address.state} {address.zipCode}
-                            </p>
-                            <p className="text-sm text-gray-600">{address.country}</p>
-                            <p className="text-sm text-gray-600 mt-1">Phone: {address.phone}</p>
-                          </div>
+                      <div className="min-w-0">
+                        <div className="mb-1 flex items-center gap-2">
+                          <h3 className="text-[16px] font-bold capitalize text-[#0f5c56]">{address.name}</h3>
                         </div>
-                      </div>
-                      <div className="flex gap-2 pt-3 border-t border-gray-200">
-                        {!address.isDefault && (
-                          <button
-                            onClick={async () => {
-                              try {
-                                await setDefaultAddress(address.id);
-                                toast.success('Default address updated');
-                              } catch (error) {
-                                toast.error(error?.message || 'Failed to set default address');
-                              }
-                            }}
-                            className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold text-sm hover:bg-gray-200 transition-colors"
-                          >
-                            Set as Default
-                          </button>
+                        <p className="text-[14px] font-semibold leading-5 text-gray-400">
+                          {[address.address, address.city, address.state, address.country, address.zipCode]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </p>
+                        {address.isDefault && (
+                          <div className="mt-4 flex items-center justify-between gap-3">
+                            <p className="text-[12px] font-semibold text-[#0f5c56]">Default Address.</p>
+                            <div className="flex items-center gap-4">
+                              <button
+                                onClick={() => handleEdit(address)}
+                                className="text-[#0f5c56]"
+                              >
+                                <FiEdit className="text-[18px]" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(address.id)}
+                                className="text-red-400"
+                              >
+                                <FiTrash2 className="text-[18px]" />
+                              </button>
+                            </div>
+                          </div>
                         )}
-                        <button
-                          onClick={() => handleEdit(address)}
-                          className="p-2 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-100 transition-colors"
-                        >
-                          <FiEdit className="text-base" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(address.id)}
-                          className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
-                        >
-                          <FiTrash2 className="text-base" />
-                        </button>
+                        {!address.isDefault && (
+                          <div className="mt-4 flex items-center justify-between gap-3">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await setDefaultAddress(address.id);
+                                  toast.success('Default address updated');
+                                } catch (error) {
+                                  toast.error(error?.message || 'Failed to set default address');
+                                }
+                              }}
+                              className="rounded-md bg-[#e7f7f5] px-5 py-2 text-sm font-semibold text-[#0f5c56] shadow-sm"
+                            >
+                              Set Default
+                            </button>
+                            <div className="flex items-center gap-4">
+                              <button
+                                onClick={() => handleEdit(address)}
+                                className="text-[#0f5c56]"
+                              >
+                                <FiEdit className="text-[18px]" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(address.id)}
+                                className="text-red-400"
+                              >
+                                <FiTrash2 className="text-[18px]" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   ))}
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="fixed bottom-20 left-4 right-4 z-40">
+            <button
+              type="button"
+              onClick={() => navigate('/checkout')}
+              className="w-full rounded-md bg-[#339af0] px-5 py-3 text-[15px] font-semibold text-white shadow-md"
+            >
+              Select Address
+            </button>
           </div>
 
           {/* Address Form Modal */}
@@ -212,7 +238,7 @@ const AddressFormModal = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 z-50 flex items-end"
+      className="fixed inset-0 bg-black/50 z-[10050] flex items-end"
       onClick={onCancel}
     >
       <motion.div
@@ -220,7 +246,7 @@ const AddressFormModal = ({
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-t-3xl p-6 w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-t-3xl p-6 pb-24 w-full max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-800">
@@ -241,28 +267,6 @@ const AddressFormModal = ({
               placeholder="Home, Work, etc."
             />
             {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-            <input
-              type="text"
-              {...register('fullName', { required: 'Full name is required' })}
-              className={`w-full px-4 py-3 rounded-xl border-2 ${errors.fullName ? 'border-red-300' : 'border-gray-200'
-                } focus:outline-none focus:ring-2 focus:ring-primary-500 text-base`}
-            />
-            {errors.fullName && (
-              <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-            <input
-              type="tel"
-              {...register('phone', { required: 'Phone number is required' })}
-              className={`w-full px-4 py-3 rounded-xl border-2 ${errors.phone ? 'border-red-300' : 'border-gray-200'
-                } focus:outline-none focus:ring-2 focus:ring-primary-500 text-base`}
-            />
-            {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>}
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Street Address</label>
