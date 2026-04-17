@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FiTrash2, FiMinus, FiPlus, FiHeart, FiAlertCircle, FiStar } from "react-icons/fi";
@@ -220,25 +220,24 @@ const SwipeableCartItem = ({ item, index }) => {
                                 </select>
                                 <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">▼</span>
                             </div>
-                            <div className="relative">
-                                <select
-                                    value={item.quantity}
-                                    onChange={(e) => {
-                                        const nextQuantity = Number(e.target.value);
-                                        const change = nextQuantity - item.quantity;
-                                        if (change !== 0) {
-                                            handleQuantityChange(item.id, item.quantity, change, item.variant);
-                                        }
-                                    }}
-                                    className="appearance-none pl-2.5 pr-5 py-1 bg-gray-100 rounded-md text-[11px] text-gray-500 focus:outline-none"
+                            <div className="flex items-center bg-gray-100 rounded-md px-1 py-0.5">
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuantityChange(item.id, item.quantity, -1, item.variant)}
+                                    className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded-md transition-colors"
                                 >
-                                    {quantityOptions.map((qtyOption) => (
-                                        <option key={qtyOption} value={qtyOption}>
-                                            {`Qty ${qtyOption}`}
-                                        </option>
-                                    ))}
-                                </select>
-                                <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">▼</span>
+                                    <FiMinus size={11} />
+                                </button>
+                                <span className="text-[11px] font-bold text-gray-600 px-2 min-w-[20px] text-center">
+                                    {item.quantity}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuantityChange(item.id, item.quantity, 1, item.variant)}
+                                    className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded-md transition-colors"
+                                >
+                                    <FiPlus size={11} />
+                                </button>
                             </div>
                         </div>
                         <div className="mb-1.5">
