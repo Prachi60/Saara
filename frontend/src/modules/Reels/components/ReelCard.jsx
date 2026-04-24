@@ -54,7 +54,7 @@ const ReelCard = ({ reel, toggleLike, shareReel, saveReel, reportReel }) => {
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
 
             {/* Interactions Overlay */}
-            <div className="absolute right-4 bottom-8 z-30">
+            <div className="absolute right-4 bottom-20 z-30">
                 <ReelActions 
                     reel={reel} 
                     onLike={toggleLike} 
@@ -67,7 +67,7 @@ const ReelCard = ({ reel, toggleLike, shareReel, saveReel, reportReel }) => {
             </div>
 
             {/* Content & Creator Info */}
-            <div className="absolute left-4 right-20 bottom-8 z-10 flex flex-col gap-3">
+            <div className="absolute left-4 right-20 bottom-20 z-10 flex flex-col gap-3">
                 {/* Creator Profile Section */}
                 <div className="flex items-center gap-3">
                     <div 
