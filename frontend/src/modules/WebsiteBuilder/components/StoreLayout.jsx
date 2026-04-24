@@ -25,7 +25,7 @@ const StoreLayout = ({ config, children }) => {
                     <img src={config.logo} alt={config.storeName} className="w-full h-full object-cover" />
                 </div>
                 <div className="text-center">
-                    <h1 className="text-4xl font-black text-gray-900 tracking-tight uppercase" style={{ color: layoutType === 'modern' ? config.brandColor : 'inherit' }}>
+                    <h1 className="text-2xl font-black text-gray-900 tracking-tight uppercase" style={{ color: layoutType === 'modern' ? config.brandColor : 'inherit' }}>
                         {config.storeName}
                     </h1>
                     <p className="text-sm font-bold text-gray-400 mt-2 tracking-widest">{config.customDomain}</p>

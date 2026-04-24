@@ -133,6 +133,10 @@ import PolicyPage from "./modules/UserApp/pages/PolicyPage";
 import SimilarExplore from "./modules/UserApp/pages/SimilarExplore";
 import ComingSoon from "./modules/UserApp/pages/ComingSoon";
 import ReelsPage from "./modules/Reels/pages/ReelsPage";
+import CreatorProfile from "./modules/Reels/pages/CreatorProfile";
+import CreatorChat from "./modules/Reels/pages/CreatorChat";
+import ContactRequest from "./modules/Reels/pages/ContactRequest";
+import FollowersList from "./modules/Reels/pages/FollowersList";
 import WalletPage from "./modules/Affiliate/pages/WalletPage";
 import ExplorePage from "./modules/Explore/pages/ExplorePage";
 import VendorAffiliateDashboard from "./modules/VendorAffiliate/pages/AffiliateDashboard";
@@ -365,6 +369,38 @@ const AppRoutes = () => {
         element={
           <RouteWrapper>
             <ReelsPage />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/creator/:id"
+        element={
+          <RouteWrapper>
+            <CreatorProfile />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/chat/:id"
+        element={
+          <RouteWrapper>
+            <CreatorChat />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/contact-request/:id"
+        element={
+          <RouteWrapper>
+            <ContactRequest />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/followers/:id"
+        element={
+          <RouteWrapper>
+            <FollowersList />
           </RouteWrapper>
         }
       />
