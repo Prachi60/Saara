@@ -4,6 +4,7 @@ import {
   FiShoppingBag,
   FiHeart,
   FiBell,
+  FiMenu,
 } from "react-icons/fi";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCartStore, useUIStore } from "../../../../shared/store/useStore";
@@ -15,6 +16,7 @@ import { motion } from "framer-motion";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import SearchBar from "../../../../shared/components/SearchBar";
 import MobileCategoryIcons from "../Mobile/MobileCategoryIcons";
+import MobileSidebar from "./MobileSidebar";
 
 // Category gradient mapping - Very subtle pastel colors
 const categoryGradients = {
@@ -28,6 +30,7 @@ const categoryGradients = {
 
 const MobileHeader = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showCartAnimation, setShowCartAnimation] = useState(false);
   const [positionsReady, setPositionsReady] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
@@ -350,8 +353,16 @@ const MobileHeader = () => {
           style={{
             pointerEvents: isTopRowVisible ? "auto" : "none",
           }}>
-          {/* Logo and Marketplace Badge */}
+          {/* Menu and Logo */}
           <div className="flex items-center gap-2 flex-shrink-0 overflow-visible relative z-[10001]">
+            {/* Hamburger Menu */}
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 -ml-2 hover:bg-white/50 rounded-full transition-all duration-300"
+            >
+              <FiMenu className="text-2xl text-gray-700" />
+            </button>
+
             <Link
               to="/home"
               className="flex items-center overflow-visible relative z-[10002]">
@@ -487,7 +498,13 @@ const MobileHeader = () => {
       {typeof document !== "undefined" &&
         createPortal(headerContent, document.body)}
       {typeof document !== "undefined" &&
-        createPortal(animationContent, document.body)}
+        createPortal(
+          <MobileSidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+          />,
+          document.body
+        )}
     </>
   );
 };

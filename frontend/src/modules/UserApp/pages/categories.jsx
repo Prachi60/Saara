@@ -358,182 +358,15 @@ const MobileCategories = () => {
           {/* Category Header - Fixed at top */}
           {selectedCategory && (
             <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3">
-              <div
-                key={`header-${selectedCategoryId}`}
-                className="flex items-center gap-2 md:gap-3">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0">
-                  <FiArrowLeft className="text-xl text-gray-700" />
-                </button>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-lg font-bold text-gray-800">
-                    {selectedCategory.name}
-                  </h2>
-                  <p className="text-[10px] text-gray-500">
-                    {filteredProducts.length} product
-                    {filteredProducts.length !== 1 ? "s" : ""} available
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0 relative">
-                  <div ref={filterButtonRef} className="relative">
-                    <button
-                      onClick={() => setShowFilters(!showFilters)}
-                      className={`p-2 hover:bg-gray-100 rounded-full transition-colors ${showFilters ? "bg-gray-100" : ""
-                        }`}>
-                      <FiFilter
-                        className={`text-xl transition-colors ${hasActiveFilters ? "text-blue-600" : "text-gray-700"
-                          }`}
-                      />
-                    </button>
-
-                    {/* Filter Dropdown */}
-                    <AnimatePresence>
-                      {showFilters && (
-                        <>
-                          {/* Backdrop */}
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setShowFilters(false)}
-                            className="fixed inset-0 bg-black/20 z-40"
-                          />
-                          <motion.div
-                            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 300,
-                              damping: 30,
-                            }}
-                            className="filter-dropdown absolute right-0 top-full w-56 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden"
-                            style={{ marginTop: "10px" }}>
-                            {/* Header */}
-                            <div className="flex items-center justify-between px-2 py-1.5 border-b border-gray-200 bg-gray-50">
-                              <div className="flex items-center gap-1.5">
-                                <FiFilter className="text-sm text-gray-700" />
-                                <h3 className="text-sm font-bold text-gray-800">
-                                  Filters
-                                </h3>
-                              </div>
-                              <button
-                                onClick={() => setShowFilters(false)}
-                                className="p-0.5 hover:bg-gray-200 rounded-full transition-colors">
-                                <FiX className="text-sm text-gray-600" />
-                              </button>
-                            </div>
-
-                            {/* Filter Content */}
-                            <div className="max-h-[50vh] overflow-y-auto scrollbar-hide">
-                              <div className="p-2 space-y-2">
-                                {/* Price Range */}
-                                <div>
-                                  <h4 className="font-semibold text-gray-700 mb-1 text-xs">
-                                    Price Range
-                                  </h4>
-                                  <div className="space-y-1.5">
-                                    <input
-                                      type="number"
-                                      placeholder="Min Price"
-                                      value={filters.minPrice}
-                                      onChange={(e) =>
-                                        handleFilterChange(
-                                          "minPrice",
-                                          e.target.value
-                                        )
-                                      }
-                                      className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs"
-                                    />
-                                    <input
-                                      type="number"
-                                      placeholder="Max Price"
-                                      value={filters.maxPrice}
-                                      onChange={(e) =>
-                                        handleFilterChange(
-                                          "maxPrice",
-                                          e.target.value
-                                        )
-                                      }
-                                      className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs"
-                                    />
-                                  </div>
-                                </div>
-
-                                {/* Rating Filter */}
-                                <div>
-                                  <h4 className="font-semibold text-gray-700 mb-1 text-xs">
-                                    Minimum Rating
-                                  </h4>
-                                  <div className="space-y-0.5">
-                                    {[4, 3, 2, 1].map((rating) => (
-                                      <label
-                                        key={rating}
-                                        className="flex items-center gap-1.5 cursor-pointer p-1 rounded-md hover:bg-gray-50 transition-colors">
-                                        <input
-                                          type="radio"
-                                          name="minRating"
-                                          value={rating}
-                                          checked={
-                                            filters.minRating ===
-                                            rating.toString()
-                                          }
-                                          onChange={(e) =>
-                                            handleFilterChange(
-                                              "minRating",
-                                              e.target.value
-                                            )
-                                          }
-                                          className="w-3 h-3 appearance-none rounded-full border-2 border-gray-300 bg-white checked:bg-white checked:border-primary-500 relative cursor-pointer"
-                                          style={{
-                                            backgroundImage:
-                                              filters.minRating ===
-                                                rating.toString()
-                                                ? "radial-gradient(circle, #10b981 40%, transparent 40%)"
-                                                : "none",
-                                          }}
-                                        />
-                                        <span className="text-xs text-gray-700">
-                                          {rating}+ Stars
-                                        </span>
-                                      </label>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Footer */}
-                            <div className="border-t border-gray-200 p-2 bg-gray-50 space-y-1.5">
-                              <button
-                                onClick={clearFilters}
-                                className="w-full py-1.5 bg-gray-200 text-gray-700 rounded-md font-semibold text-xs hover:bg-gray-300 transition-colors">
-                                Clear All
-                              </button>
-                              <button
-                                onClick={() => setShowFilters(false)}
-                                className="w-full py-1.5 gradient-green text-white rounded-md font-semibold text-xs hover:shadow-glow-green transition-all">
-                                Apply Filters
-                              </button>
-                            </div>
-                          </motion.div>
-                        </>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              </div>
-
-              {/* New Search Bar Row */}
-              <div className="mt-3 relative">
+              {/* Search Bar Row */}
+              <div className="relative">
                 <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                 <input
                   type="text"
                   placeholder="Search in category..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2.5 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 shadow-inner placeholder:text-gray-400"
+                  className="w-full pl-10 pr-10 py-2 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 shadow-inner placeholder:text-gray-400"
                 />
                 {searchQuery && (
                   <button
@@ -556,7 +389,7 @@ const MobileCategories = () => {
             {/* Left Panel - Vertical Category Sidebar */}
             <div
               ref={categoryListRef}
-              className="w-16 md:w-20 bg-gray-50 border-r border-gray-200 overflow-y-auto scrollbar-hide flex-shrink-0"
+              className="w-20 md:w-24 bg-gray-50 border-r border-gray-200 overflow-y-auto scrollbar-hide flex-shrink-0"
               style={{
                 maxHeight: `calc(${contentHeight} - ${headerSectionHeight}px)`,
               }}>
@@ -581,9 +414,9 @@ const MobileCategories = () => {
                         className={`w-full px-2 py-1.5 text-left transition-all duration-200 relative ${isActive ? "bg-white shadow-sm" : "hover:bg-gray-100"
                           }`}
                         style={{ willChange: "transform" }}>
-                        <div className="flex flex-col items-center gap-0.5">
+                        <div className="flex flex-col items-center gap-1">
                           <div
-                            className={`w-8 h-8 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 transition-all duration-200 ${isActive
+                            className={`w-12 h-12 rounded-2xl overflow-hidden bg-gray-100 flex-shrink-0 transition-all duration-200 ${isActive
                               ? "ring-2 ring-primary-500 ring-offset-1 scale-105"
                               : ""
                               }`}
@@ -600,7 +433,7 @@ const MobileCategories = () => {
                             />
                           </div>
                           <span
-                            className={`text-[9px] font-semibold text-center leading-tight transition-colors ${isActive ? "text-primary-600" : "text-gray-700"
+                            className={`text-[11px] font-semibold text-center leading-tight transition-colors ${isActive ? "text-primary-600" : "text-gray-700"
                               }`}>
                             {category.name}
                           </span>
@@ -618,41 +451,16 @@ const MobileCategories = () => {
               style={{
                 maxHeight: `calc(${contentHeight} - ${headerSectionHeight}px)`,
               }}>
-              <div className="p-0 md:p-3">
-                {/* Subcategory Selector - Above product cards */}
-                {subcategories.length > 0 && (
-                  <div className="mb-3 pb-3 border-b border-gray-200">
-                    <div
-                      className="overflow-x-auto scrollbar-hide px-2 pt-2 md:pt-0 md:-mx-3 md:px-3"
-                      style={{
-                        scrollBehavior: "smooth",
-                        WebkitOverflowScrolling: "touch",
-                      }}>
-                      <div className="flex gap-1.5">
-                        {subcategories.map((subcategory) => {
-                          const isActive =
-                            normalizeId(selectedSubcategory) ===
-                            normalizeId(subcategory.id);
-                          return (
-                            <motion.button
-                              key={subcategory.id}
-                              onClick={() =>
-                                setSelectedSubcategory(subcategory.id)
-                              }
-                              whileTap={{ scale: 0.97 }}
-                              className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap border ${isActive
-                                ? "bg-white text-primary-600 border-primary-200 shadow-sm"
-                                : "bg-gray-50 text-gray-600 border-gray-200 active:bg-gray-100"
-                                }`}
-                              style={{ willChange: "transform" }}>
-                              {subcategory.name}
-                            </motion.button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <div className="p-3 md:p-6">
+                {/* Top Header */}
+                <div className="flex items-center gap-4 mb-6 px-1">
+                  <h2 className="text-sm font-bold text-gray-800 whitespace-nowrap uppercase tracking-wide">
+                    Top Categories For You
+                  </h2>
+                  <div className="flex-1 border-t border-dotted border-gray-300"></div>
+                </div>
+
+
 
                 {filteredProducts.length === 0 ? (
                   <div key="empty" className="text-center py-12">
@@ -673,14 +481,29 @@ const MobileCategories = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1.5 md:gap-4 p-1 md:p-0"
+                    className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-y-6 gap-x-3 p-1"
                     style={{
                       willChange: "opacity",
                       transform: "translateZ(0)",
                     }}>
                     {filteredProducts.map((product) => (
-                      <div key={product.id}>
-                        <ProductCard product={product} />
+                      <div
+                        key={product.id}
+                        onClick={() => navigate(`/product/${product.id}`)}
+                        className="flex flex-col items-center gap-2 cursor-pointer group"
+                      >
+                        <div className="w-full aspect-square bg-gray-50 rounded-2xl p-2 flex items-center justify-center overflow-hidden transition-all group-hover:scale-105 shadow-sm border border-gray-100">
+                          <LazyImage
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-contain"
+                            placeholderWidth={100}
+                            placeholderHeight={100}
+                          />
+                        </div>
+                        <span className="text-[11px] font-medium text-gray-700 text-center line-clamp-2 leading-tight px-1 group-hover:text-primary-600 transition-colors">
+                          {product.name}
+                        </span>
                       </div>
                     ))}
                   </motion.div>
