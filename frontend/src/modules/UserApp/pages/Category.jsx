@@ -13,6 +13,7 @@ import useInfiniteScroll from "../../../shared/hooks/useInfiniteScroll";
 import LazyImage from "../../../shared/components/LazyImage";
 import { getPlaceholderImage } from "../../../shared/utils/helpers";
 import api from "../../../shared/utils/api";
+import AnimatedBanner from "../components/Mobile/AnimatedBanner";
 
 const normalizeId = (value) => String(value ?? "").trim();
 
@@ -376,26 +377,35 @@ const MobileCategory = () => {
                           {/* Filter Content */}
                           <div className="max-h-[50vh] overflow-y-auto scrollbar-hide">
                             <div className="p-2 space-y-2">
-                              {/* Category Switcher */}
+                              {/* Category Switcher - Image Based */}
                               <div>
-                                <h4 className="font-semibold text-gray-700 mb-1 text-xs">
+                                <h4 className="font-semibold text-gray-700 mb-2 text-xs">
                                   Switch Category
                                 </h4>
-                                <select
-                                  value={categoryId}
-                                  onChange={(e) => {
-                                    const newId = e.target.value;
-                                    if (newId) navigate(`/category/${newId}`);
-                                    setShowFilters(false);
-                                  }}
-                                  className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs"
-                                >
+                                <div className="grid grid-cols-4 gap-2">
                                   {rootCategories.map((cat) => (
-                                    <option key={cat.id} value={normalizeId(cat.id)}>
-                                      {cat.name}
-                                    </option>
+                                    <button
+                                      key={cat.id}
+                                      onClick={() => {
+                                        const newId = normalizeId(cat.id);
+                                        if (newId) navigate(`/category/${newId}`);
+                                        setShowFilters(false);
+                                      }}
+                                      className={`flex flex-col items-center gap-1 p-1 rounded-lg border transition-all ${normalizeId(categoryId) === normalizeId(cat.id) ? "border-primary-500 bg-primary-50" : "border-gray-100 hover:bg-gray-50"}`}
+                                    >
+                                      <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-100">
+                                        <LazyImage
+                                          src={cat.image}
+                                          alt={cat.name}
+                                          className="w-full h-full object-cover"
+                                          placeholderWidth={32}
+                                          placeholderHeight={32}
+                                        />
+                                      </div>
+                                      <span className="text-[9px] text-gray-600 font-medium line-clamp-1">{cat.name}</span>
+                                    </button>
                                   ))}
-                                </select>
+                                </div>
                               </div>
 
                               {/* Price Range */}
@@ -496,6 +506,7 @@ const MobileCategory = () => {
             </div>
           </div>
 
+          <AnimatedBanner />
           {/* Products List */}
           <div className="px-4 py-4">
             {categoryProducts.length === 0 ? (

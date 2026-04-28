@@ -169,7 +169,6 @@ const ProductCard = ({
   return (
     <>
       <motion.div
-        whileHover={{ y: -4 }}
         style={{ willChange: "transform", transform: "translateZ(0)" }}
         className="bg-white rounded-2xl overflow-hidden group cursor-pointer h-full flex flex-col hover:shadow-xl transition-all duration-300 border border-gray-100/60"
         {...longPressHandlers}>
@@ -198,7 +197,7 @@ const ProductCard = ({
               <LazyImage
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                className="w-full h-full object-cover transition-transform duration-500 ease-out"
                 style={{ willChange: "transform", transform: "translateZ(0)" }}
                 onError={(e) => {
                   e.target.src = getPlaceholderImage(300, 300, "Product Image");

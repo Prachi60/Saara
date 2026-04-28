@@ -6,6 +6,8 @@ import MobileLayout from "../components/Layout/MobileLayout";
 import ProductCard from "../../../shared/components/ProductCard";
 import ProductListItem from "../components/Mobile/ProductListItem";
 import { getProductsByVendor, getVendorById } from "../data/catalogData";
+import { useCategoryStore } from "../../../shared/store/categoryStore";
+import { categories as fallbackCategories } from "../../../data/categories";
 import PageTransition from "../../../shared/components/PageTransition";
 import useInfiniteScroll from "../../../shared/hooks/useInfiniteScroll";
 import LazyImage from "../../../shared/components/LazyImage";
@@ -38,6 +40,18 @@ const Seller = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const vendorId = String(id ?? "").trim();
+    const { categories, initialize, getRootCategories } = useCategoryStore();
+
+    // Initialize store on mount
+    useEffect(() => {
+        initialize();
+    }, [initialize]);
+
+    const rootCategories = useMemo(() => {
+        const roots = getRootCategories().filter((cat) => cat.isActive !== false);
+        return roots.length ? roots : fallbackCategories;
+    }, [categories, getRootCategories]);
+
     const [catalogVersion, setCatalogVersion] = useState(0);
     const [remoteVendor, setRemoteVendor] = useState(null);
     const [remoteProducts, setRemoteProducts] = useState([]);
@@ -55,6 +69,7 @@ const Seller = () => {
         minPrice: "",
         maxPrice: "",
         minRating: "",
+        categoryId: "",
     });
 
     // Get products for this vendor
@@ -94,6 +109,12 @@ const Seller = () => {
             );
         }
 
+        if (filters.categoryId) {
+            result = result.filter(
+                (product) => String(product.categoryId) === String(filters.categoryId)
+            );
+        }
+
         return result;
     }, [rawVendorProducts, filters]);
 
@@ -111,6 +132,7 @@ const Seller = () => {
             minPrice: "",
             maxPrice: "",
             minRating: "",
+            categoryId: "",
         });
     };
 
@@ -323,6 +345,41 @@ const Seller = () => {
                                                         </div>
                                                         <div className="max-h-[50vh] overflow-y-auto scrollbar-hide">
                                                             <div className="p-2 space-y-2">
+                                                                {/* Category Filter - Image Based */}
+                                                                <div>
+                                                                    <h4 className="font-semibold text-gray-700 mb-2 text-xs">
+                                                                        Category
+                                                                    </h4>
+                                                                    <div className="grid grid-cols-4 gap-2">
+                                                                        <button
+                                                                            onClick={() => handleFilterChange("categoryId", "")}
+                                                                            className={`flex flex-col items-center gap-1 p-1 rounded-lg border transition-all ${!filters.categoryId ? "border-primary-500 bg-primary-50" : "border-gray-100 hover:bg-gray-50"}`}
+                                                                        >
+                                                                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600">
+                                                                                ALL
+                                                                            </div>
+                                                                            <span className="text-[9px] text-gray-600 font-medium">All</span>
+                                                                        </button>
+                                                                        {rootCategories.map((cat) => (
+                                                                            <button
+                                                                                key={cat.id}
+                                                                                onClick={() => handleFilterChange("categoryId", cat.id)}
+                                                                                className={`flex flex-col items-center gap-1 p-1 rounded-lg border transition-all ${String(filters.categoryId) === String(cat.id) ? "border-primary-500 bg-primary-50" : "border-gray-100 hover:bg-gray-50"}`}
+                                                                            >
+                                                                                <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-100">
+                                                                                    <LazyImage
+                                                                                        src={cat.image}
+                                                                                        alt={cat.name}
+                                                                                        className="w-full h-full object-cover"
+                                                                                        placeholderWidth={32}
+                                                                                        placeholderHeight={32}
+                                                                                    />
+                                                                                </div>
+                                                                                <span className="text-[9px] text-gray-600 font-medium line-clamp-1">{cat.name}</span>
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
                                                                 <div>
                                                                     <h4 className="font-semibold text-gray-700 mb-1 text-xs">
                                                                         Price Range

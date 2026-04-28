@@ -10,6 +10,7 @@ import PageTransition from "../../../shared/components/PageTransition";
 import LazyImage from "../../../shared/components/LazyImage";
 import ProductCard from "../../../shared/components/ProductCard";
 import api from "../../../shared/utils/api";
+import AnimatedBanner from "../components/Mobile/AnimatedBanner";
 
 const normalizeId = (value) => String(value ?? "").trim();
 
@@ -451,7 +452,8 @@ const MobileCategories = () => {
               style={{
                 maxHeight: `calc(${contentHeight} - ${headerSectionHeight}px)`,
               }}>
-              <div className="p-3 md:p-6">
+              <div className="p-1 md:p-6">
+                <AnimatedBanner showPadding={false} className="mb-2" />
                 {/* Top Header */}
                 <div className="flex items-center gap-4 mb-6 px-1">
                   <h2 className="text-sm font-bold text-gray-800 whitespace-nowrap uppercase tracking-wide">
