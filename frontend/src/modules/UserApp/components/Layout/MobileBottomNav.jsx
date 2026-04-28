@@ -12,14 +12,9 @@ const MobileBottomNav = () => {
 
   const navItems = [
     { path: "/home", icon: FiHome, label: "Home" },
-    { path: "/explore", icon: FiCompass, label: "Explore" }, // Replaced Categories with Explore
-    { path: "/reels", icon: FiPlay, label: "Reels" }, // New Reels item
-    {
-      path: "/wishlist",
-      icon: FiHeart,
-      label: "Wishlist",
-      badge: wishlistCount > 0 ? wishlistCount : null,
-    },
+    { path: "/explore", icon: FiCompass, label: "Explore" },
+    { path: "/reels", icon: FiPlay, label: "Reels" },
+    { path: "/categories", icon: FiGrid, label: "Categories" },
     {
       path: isAuthenticated ? "/profile" : "/login",
       icon: FiUser,

@@ -92,7 +92,7 @@ const resolveBannerLink = (banner) => {
 const isExternalLink = (target) => /^https?:\/\//i.test(String(target || "").trim());
 const isSafeInternalPath = (target) => String(target || "").startsWith("/");
 
-const AnimatedBanner = ({ banners = null }) => {
+const AnimatedBanner = ({ banners = null, showPadding = true, className = "" }) => {
   const navigate = useNavigate();
   const [currentBanner, setCurrentBanner] = useState(0);
 
@@ -132,7 +132,7 @@ const AnimatedBanner = ({ banners = null }) => {
   }, [resolvedBanners.length]);
 
   return (
-    <div className="px-4 py-3">
+    <div className={`${showPadding ? "px-4 py-3" : ""} ${className}`}>
       <div className="relative w-full h-32 rounded-2xl overflow-hidden shadow-xl">
         <AnimatePresence mode="wait">
           {resolvedBanners.map((banner, index) => {

@@ -9,7 +9,6 @@ const MobileSidebar = ({ isOpen, onClose }) => {
 
   const menuItems = [
     { label: "Home", icon: FiHome, path: "/home" },
-    { label: "Categories", icon: FiGrid, path: "/categories" },
     { label: "Offers", icon: FiTag, path: "/offers" },
     { label: "Explore", icon: FiCompass, path: "/explore" },
     { label: "Reels", icon: FiPlay, path: "/reels" },

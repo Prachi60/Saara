@@ -6,11 +6,14 @@ import MobileLayout from "../components/Layout/MobileLayout";
 import ProductCard from "../../../shared/components/ProductCard";
 import ProductListItem from "../components/Mobile/ProductListItem";
 import { getProductsByBrand, getBrandById } from "../data/catalogData";
+import { useCategoryStore } from "../../../shared/store/categoryStore";
+import { categories as fallbackCategories } from "../../../data/categories";
 import PageTransition from "../../../shared/components/PageTransition";
 import useInfiniteScroll from "../../../shared/hooks/useInfiniteScroll";
 import LazyImage from "../../../shared/components/LazyImage";
 import { getPlaceholderImage } from "../../../shared/utils/helpers";
 import api from "../../../shared/utils/api";
+import AnimatedBanner from "../components/Mobile/AnimatedBanner";
 
 const normalizeBrand = (raw) => ({
     ...raw,
@@ -58,6 +61,18 @@ const Brand = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const brandId = String(id ?? "").trim();
+    const { categories, initialize, getRootCategories } = useCategoryStore();
+
+    // Initialize store on mount
+    useEffect(() => {
+        initialize();
+    }, [initialize]);
+
+    const rootCategories = useMemo(() => {
+        const roots = getRootCategories().filter((cat) => cat.isActive !== false);
+        return roots.length ? roots : fallbackCategories;
+    }, [categories, getRootCategories]);
+
     const [catalogVersion, setCatalogVersion] = useState(0);
     const [remoteBrand, setRemoteBrand] = useState(null);
     const [remoteProducts, setRemoteProducts] = useState([]);
@@ -77,6 +92,7 @@ const Brand = () => {
         minPrice: "",
         maxPrice: "",
         minRating: "",
+        categoryId: "",
     });
 
     // Get products for this brand
@@ -121,6 +137,12 @@ const Brand = () => {
             );
         }
 
+        if (filters.categoryId) {
+            result = result.filter(
+                (product) => String(product.categoryId) === String(filters.categoryId)
+            );
+        }
+
         return sortProducts(result, sortBy);
     }, [rawBrandProducts, filters, searchQuery, sortBy]);
 
@@ -138,6 +160,7 @@ const Brand = () => {
             minPrice: "",
             maxPrice: "",
             minRating: "",
+            categoryId: "",
         });
         setSearchQuery("");
         setSortBy("newest");
@@ -413,6 +436,43 @@ const Brand = () => {
                                                                         <option value="price-desc">Price: High to Low</option>
                                                                     </select>
                                                                 </div>
+
+                                                                {/* Category Filter - Image Based */}
+                                                                <div>
+                                                                    <h4 className="font-semibold text-gray-700 mb-2 text-xs">
+                                                                        Category
+                                                                    </h4>
+                                                                    <div className="grid grid-cols-4 gap-2">
+                                                                        <button
+                                                                            onClick={() => handleFilterChange("categoryId", "")}
+                                                                            className={`flex flex-col items-center gap-1 p-1 rounded-lg border transition-all ${!filters.categoryId ? "border-primary-500 bg-primary-50" : "border-gray-100 hover:bg-gray-50"}`}
+                                                                        >
+                                                                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600">
+                                                                                ALL
+                                                                            </div>
+                                                                            <span className="text-[9px] text-gray-600 font-medium">All</span>
+                                                                        </button>
+                                                                        {rootCategories.map((cat) => (
+                                                                            <button
+                                                                                key={cat.id}
+                                                                                onClick={() => handleFilterChange("categoryId", cat.id)}
+                                                                                className={`flex flex-col items-center gap-1 p-1 rounded-lg border transition-all ${String(filters.categoryId) === String(cat.id) ? "border-primary-500 bg-primary-50" : "border-gray-100 hover:bg-gray-50"}`}
+                                                                            >
+                                                                                <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-100">
+                                                                                    <LazyImage
+                                                                                        src={cat.image}
+                                                                                        alt={cat.name}
+                                                                                        className="w-full h-full object-cover"
+                                                                                        placeholderWidth={32}
+                                                                                        placeholderHeight={32}
+                                                                                    />
+                                                                                </div>
+                                                                                <span className="text-[9px] text-gray-600 font-medium line-clamp-1">{cat.name}</span>
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+
                                                                 {/* Price Range */}
                                                                 <div>
                                                                     <h4 className="font-semibold text-gray-700 mb-1 text-xs">
@@ -511,7 +571,7 @@ const Brand = () => {
                             </div>
                         </div>
                     </div>
-
+                    <AnimatedBanner />
                     {/* Products List */}
                     <div className="px-4 py-4 lg:p-6">
                         {brandProducts.length === 0 ? (

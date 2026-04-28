@@ -536,61 +536,39 @@ const MobileSearch = () => {
                           {/* Filter Content */}
                           <div className="max-h-[50vh] overflow-y-auto scrollbar-hide">
                             <div className="p-2 space-y-2">
-                              {/* Category Filter */}
+                              {/* Category Filter - Image Based */}
                               <div>
-                                <h4 className="font-semibold text-gray-700 mb-1 text-xs">
+                                <h4 className="font-semibold text-gray-700 mb-2 text-xs">
                                   Category
                                 </h4>
-                                <div className="relative">
+                                <div className="grid grid-cols-4 gap-2">
                                   <button
-                                    type="button"
-                                    onClick={() => {
-                                      setShowCategoryDropdown(!showCategoryDropdown);
-                                      setShowVendorDropdown(false);
-                                    }}
-                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm flex items-center justify-between text-gray-700"
+                                    onClick={() => handleFilterChange("category", "")}
+                                    className={`flex flex-col items-center gap-1 p-1 rounded-lg border transition-all ${!filters.category ? "border-primary-500 bg-primary-50" : "border-gray-100 hover:bg-gray-50"}`}
                                   >
-                                    <span>{filters.category ? categories.find(c => normalizeId(c.id) === normalizeId(filters.category))?.name : "All Categories"}</span>
-                                    <motion.div
-                                      animate={{ rotate: showCategoryDropdown ? 180 : 0 }}
-                                      transition={{ duration: 0.2 }}
-                                    >
-                                      <FiFilter className="text-gray-400 text-xs" />
-                                    </motion.div>
+                                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600">
+                                      ALL
+                                    </div>
+                                    <span className="text-[9px] text-gray-600 font-medium">All</span>
                                   </button>
-
-                                  <AnimatePresence>
-                                    {showCategoryDropdown && (
-                                      <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: "auto", opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        className="mt-1 bg-gray-50 rounded-xl border border-gray-100 overflow-hidden"
-                                      >
-                                        <div
-                                          onClick={() => {
-                                            handleFilterChange("category", "");
-                                            setShowCategoryDropdown(false);
-                                          }}
-                                          className={`px-3 py-2 text-sm cursor-pointer hover:bg-white transition-colors ${!filters.category ? "bg-white text-primary-700 font-bold" : "text-gray-600"}`}
-                                        >
-                                          All Categories
-                                        </div>
-                                        {categories.map((cat) => (
-                                          <div
-                                            key={cat.id}
-                                            onClick={() => {
-                                              handleFilterChange("category", normalizeId(cat.id));
-                                              setShowCategoryDropdown(false);
-                                            }}
-                                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-white transition-colors ${normalizeId(filters.category) === normalizeId(cat.id) ? "bg-white text-primary-700 font-bold" : "text-gray-600"}`}
-                                          >
-                                            {cat.name}
-                                          </div>
-                                        ))}
-                                      </motion.div>
-                                    )}
-                                  </AnimatePresence>
+                                  {categories.map((cat) => (
+                                    <button
+                                      key={cat.id}
+                                      onClick={() => handleFilterChange("category", normalizeId(cat.id))}
+                                      className={`flex flex-col items-center gap-1 p-1 rounded-lg border transition-all ${normalizeId(filters.category) === normalizeId(cat.id) ? "border-primary-500 bg-primary-50" : "border-gray-100 hover:bg-gray-50"}`}
+                                    >
+                                      <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-100">
+                                        <LazyImage
+                                          src={cat.image}
+                                          alt={cat.name}
+                                          className="w-full h-full object-cover"
+                                          placeholderWidth={32}
+                                          placeholderHeight={32}
+                                        />
+                                      </div>
+                                      <span className="text-[9px] text-gray-600 font-medium line-clamp-1">{cat.name}</span>
+                                    </button>
+                                  ))}
                                 </div>
                               </div>
 
