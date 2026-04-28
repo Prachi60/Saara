@@ -1,7 +1,8 @@
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FiHome, FiGrid, FiSearch, FiHeart, FiUser, FiPlay, FiCompass } from "react-icons/fi";
+import { FiHome, FiGrid, FiSearch, FiHeart, FiUser, FiCompass } from "react-icons/fi";
+import { Clapperboard } from "lucide-react";
 import { useWishlistStore } from "../../../../shared/store/wishlistStore";
 import { useAuthStore } from "../../../../shared/store/authStore";
 
@@ -11,9 +12,9 @@ const MobileBottomNav = () => {
   const { isAuthenticated } = useAuthStore();
 
   const navItems = [
-    { path: "/home", icon: FiHome, label: "Home" },
+    { path: "/reels", icon: Clapperboard, label: "Reels" },
     { path: "/explore", icon: FiCompass, label: "Explore" },
-    { path: "/reels", icon: FiPlay, label: "Reels" },
+    { path: "/home", icon: FiHome, label: "Home" },
     { path: "/categories", icon: FiGrid, label: "Categories" },
     {
       path: isAuthenticated ? "/profile" : "/login",
