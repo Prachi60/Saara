@@ -17,6 +17,7 @@ const Tickets = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     fetchTickets({
@@ -37,10 +38,25 @@ const Tickets = () => {
     const success = await addReply(selectedTicket.id, message);
     if (success) {
       setReplyMessage('');
-      // Refresh selected ticket detail if needed, or just stay as is
-      // For simplicity, we just clear the input
       const updated = await useSupportStore.getState().fetchTicketById(selectedTicket.id);
       if (updated) setSelectedTicket(updated);
+    }
+  };
+
+  const handleUpdateStatus = async (status, priority) => {
+    setIsUpdating(true);
+    try {
+      const payload = {};
+      if (status) payload.status = status;
+      if (priority) payload.priority = priority;
+      
+      const success = await useSupportStore.getState().updateTicketStatus(selectedTicket.id, payload);
+      if (success) {
+        const updated = await useSupportStore.getState().fetchTicketById(selectedTicket.id);
+        if (updated) setSelectedTicket(updated);
+      }
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -59,6 +75,7 @@ const Tickets = () => {
       high: 'bg-red-100 text-red-800',
       medium: 'bg-yellow-100 text-yellow-800',
       low: 'bg-blue-100 text-blue-800',
+      urgent: 'bg-purple-100 text-purple-800',
     };
     return colors[priority] || 'bg-gray-100 text-gray-800';
   };
@@ -72,7 +89,7 @@ const Tickets = () => {
     },
     {
       key: 'customer',
-      label: 'Customer',
+      label: 'Requester',
       sortable: false,
       render: (_, row) => (
         <div>
@@ -137,7 +154,7 @@ const Tickets = () => {
     >
       <div className="lg:hidden">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Support Tickets</h1>
-        <p className="text-sm sm:text-base text-gray-600">Manage customer support tickets</p>
+        <p className="text-sm sm:text-base text-gray-600">Manage customer & vendor support tickets</p>
       </div>
 
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
@@ -234,36 +251,53 @@ const Tickets = () => {
                 style={{ willChange: 'transform' }}
               >
                 <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                  <h3 className="text-lg font-bold text-gray-800">#{selectedTicket.id} - {selectedTicket.subject}</h3>
+                  <h3 className="text-lg font-bold text-gray-800 truncate pr-4">#{selectedTicket.id} - {selectedTicket.subject}</h3>
                   <button
                     onClick={() => setSelectedTicket(null)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 p-1"
                   >
-                    <FiX />
+                    <FiX size={20} />
                   </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto space-y-6 pr-2">
                   <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl">
                     <div>
-                      <p className="text-xs text-gray-500">Customer</p>
-                      <p className="font-semibold text-gray-800">{selectedTicket.customer?.name}</p>
+                      <p className="text-xs text-gray-500 mb-1">Requester</p>
+                      <p className="font-semibold text-gray-800 text-sm">{selectedTicket.customer?.name}</p>
+                      <p className="text-xs text-gray-500">{selectedTicket.customer?.email}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Category</p>
-                      <p className="font-semibold text-gray-800">{selectedTicket.category}</p>
+                      <p className="text-xs text-gray-500 mb-1">Category</p>
+                      <p className="font-semibold text-gray-800 text-sm">{selectedTicket.category}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Priority</p>
-                      <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getPriorityColor(selectedTicket.priority)}`}>
-                        {selectedTicket.priority}
-                      </span>
+                      <p className="text-xs text-gray-500 mb-1">Priority</p>
+                      <select
+                        value={selectedTicket.priority}
+                        onChange={(e) => handleUpdateStatus(undefined, e.target.value)}
+                        disabled={isUpdating}
+                        className={`text-xs font-medium rounded px-2 py-1 border-none focus:ring-2 focus:ring-primary-500 outline-none cursor-pointer ${getPriorityColor(selectedTicket.priority)}`}
+                      >
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Status</p>
-                      <Badge variant={getStatusColor(selectedTicket.status)}>
-                        {selectedTicket.status?.replace('_', ' ') || 'unknown'}
-                      </Badge>
+                      <p className="text-xs text-gray-500 mb-1">Status</p>
+                      <select
+                        value={selectedTicket.status}
+                        onChange={(e) => handleUpdateStatus(e.target.value, undefined)}
+                        disabled={isUpdating}
+                        className="text-xs font-medium bg-white border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-primary-500 outline-none cursor-pointer"
+                      >
+                        <option value="open">Open</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                      </select>
                     </div>
                   </div>
 
@@ -282,7 +316,7 @@ const Tickets = () => {
                             {msg.message}
                           </div>
                           <span className="text-[10px] text-gray-400 mt-1">
-                            {msg.senderType.toUpperCase()} | {new Date(msg.createdAt).toLocaleTimeString()}
+                            {msg.senderType === 'admin' ? 'Admin' : (selectedTicket.userId ? 'Customer' : 'Vendor')} | {new Date(msg.createdAt).toLocaleTimeString()}
                           </span>
                         </div>
                       ))}

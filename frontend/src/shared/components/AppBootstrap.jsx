@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import api from "../utils/api";
+import { useCartStore } from "../store/useStore";
+import { useAuthStore } from "../store/authStore";
 
 const PRODUCTS_CACHE_KEY = "user-catalog-products-cache";
 const VENDORS_CACHE_KEY = "user-catalog-vendors-cache";
@@ -38,6 +40,15 @@ const normalizeBrand = (raw) => ({
 });
 
 const AppBootstrap = () => {
+  const { isAuthenticated } = useAuthStore();
+  const { fetchCart } = useCartStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCart();
+    }
+  }, [isAuthenticated, fetchCart]);
+
   useEffect(() => {
     let cancelled = false;
 

@@ -7,6 +7,7 @@ import AnimatedSelect from "../AnimatedSelect";
 import toast from "react-hot-toast";
 import Button from "../Button";
 import { uploadAdminImage } from "../../services/adminService";
+import LinkPicker from "./LinkPicker";
 
 const BannerForm = ({ banner, onClose, onSave }) => {
   const location = useLocation();
@@ -210,6 +211,9 @@ const BannerForm = ({ banner, onClose, onSave }) => {
                         { value: "hero", label: "Hero Banner" },
                         { value: "promotional", label: "Promotional Banner" },
                         { value: "side_banner", label: "Side Banner (Home Right)" },
+                        { value: "category_focus_banner", label: "Category Focus (Main Banner)" },
+                        { value: "category_focus_item", label: "Category Focus (Circle Item)" },
+                        { value: "deal_item", label: "Deal Card (Item)" },
                       ]}
                     />
                   </div>
@@ -304,24 +308,15 @@ const BannerForm = ({ banner, onClose, onSave }) => {
                 </div>
               </div>
 
-              {/* Link */}
+              {/* Link Picker */}
               <div>
                 <h3 className="text-lg font-bold text-gray-800 mb-4">
                   Link Settings
                 </h3>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Link URL
-                  </label>
-                  <input
-                    type="text"
-                    name="link"
-                    value={formData.link}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="/category/electronics or https://example.com"
-                  />
-                </div>
+                <LinkPicker
+                  value={formData.link}
+                  onChange={(val) => setFormData({ ...formData, link: val })}
+                />
               </div>
 
               {/* Schedule */}

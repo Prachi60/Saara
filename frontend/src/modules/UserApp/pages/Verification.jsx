@@ -6,6 +6,9 @@ import toast from 'react-hot-toast';
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from '../../../shared/components/PageTransition';
 import { useAuthStore } from '../../../shared/store/authStore';
+import { useCartStore } from '../../../shared/store/useStore';
+import { useWishlistStore } from '../../../shared/store/wishlistStore';
+import { consumePostLoginAction } from '../../../shared/utils/postLoginAction';
 
 const MobileVerification = () => {
   const navigate = useNavigate();
@@ -14,6 +17,20 @@ const MobileVerification = () => {
   const { verifyOTP, resendOTP, pendingEmail, isLoading } = useAuthStore();
   const [codes, setCodes] = useState(['', '', '', '', '', '']);
   const inputRefs = useRef([]);
+
+  const replayPendingAction = () => {
+    const action = consumePostLoginAction();
+    if (!action?.type) return;
+
+    if (action.type === 'cart:add' && action.payload) {
+      useCartStore.getState().addItem(action.payload);
+      return;
+    }
+
+    if (action.type === 'wishlist:add' && action.payload) {
+      useWishlistStore.getState().addItem(action.payload);
+    }
+  };
 
   const email =
     String(location.state?.email || pendingEmail || searchParams.get('email') || '')
@@ -73,6 +90,7 @@ const MobileVerification = () => {
 
     try {
       await verifyOTP(email, verificationCode);
+      replayPendingAction();
       toast.success('Verification successful!');
       navigate('/home');
     } catch (error) {

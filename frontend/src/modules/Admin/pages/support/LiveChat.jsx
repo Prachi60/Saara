@@ -2,9 +2,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { FiMessageCircle, FiSend, FiUser } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useSupportStore } from '../../../../shared/store/supportStore';
+import { getSocket, joinRoom } from '../../../../shared/utils/socket';
+import { useAdminAuthStore } from '../../store/adminStore';
 
 const LiveChat = () => {
   const { tickets, isLoading, fetchTickets, fetchTicketById, addReply } = useSupportStore();
+  const { admin } = useAdminAuthStore();
   const [selectedChat, setSelectedChat] = useState(null);
   const [newMessage, setNewMessage] = useState('');
 
@@ -13,6 +16,49 @@ const LiveChat = () => {
       limit: 200,
     });
   }, [fetchTickets]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('admin-token') || localStorage.getItem('token');
+    if (!token) return;
+
+    const socket = getSocket(token);
+    if (!socket) return;
+
+    const handleNotification = (payload) => {
+      if (payload.type === 'new_support_message' || payload.type === 'support_ticket_update') {
+        fetchTickets({ limit: 200 });
+      }
+    };
+
+    socket.on('new_notification', handleNotification);
+
+    if (selectedChat?.id) {
+      joinRoom(`ticket_${selectedChat.id}`);
+
+      const handleNewMessage = (msg) => {
+        setSelectedChat(prev => {
+            if (!prev || prev.id !== selectedChat.id) return prev;
+            // Avoid duplicates
+            if (prev.messages?.some(m => m._id === msg._id)) return prev;
+            return {
+                ...prev,
+                messages: [...(prev.messages || []), msg]
+            };
+        });
+      };
+
+      socket.on('new_support_message', handleNewMessage);
+
+      return () => {
+        socket.off('new_notification', handleNotification);
+        socket.off('new_support_message', handleNewMessage);
+      };
+    }
+
+    return () => {
+      socket.off('new_notification', handleNotification);
+    };
+  }, [selectedChat?.id, fetchTickets]);
 
   const chats = useMemo(() => {
     return (tickets || [])

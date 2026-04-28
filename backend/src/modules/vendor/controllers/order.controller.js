@@ -59,13 +59,12 @@ export const getVendorOrderById = asyncHandler(async (req, res) => {
 // PATCH /api/vendor/orders/:id/status
 export const updateOrderStatus = asyncHandler(async (req, res) => {
     const { status } = req.body;
-    const allowed = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    const allowed = ['pending', 'processing', 'shipped', 'cancelled'];
     if (!allowed.includes(status)) throw new ApiError(400, `Status must be one of: ${allowed.join(', ')}`);
     const transitionMap = {
         pending: ['pending', 'processing', 'cancelled'],
         processing: ['processing', 'shipped', 'cancelled'],
-        shipped: ['shipped', 'delivered'],
-        delivered: ['delivered'],
+        shipped: ['shipped'],
         cancelled: ['cancelled'],
     };
 

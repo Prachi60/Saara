@@ -514,3 +514,29 @@ export const uploadVendorImages = (files, folder = 'vendors/products') => {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
 };
+
+// ─── SUPPORT TICKETS ──────────────────────────────────────────────────────────
+
+/**
+ * Get all support tickets for the authenticated vendor
+ */
+export const getVendorSupportTickets = () => api.get('/vendor/support/tickets');
+
+/**
+ * Get all active support ticket types
+ */
+export const getVendorSupportTicketTypes = () => api.get('/vendor/support/ticket-types');
+
+/**
+ * Create a new support ticket
+ * @param {{ subject, message, priority, ticketTypeId }} data
+ */
+export const createVendorSupportTicket = (data) => api.post('/vendor/support/tickets', data);
+
+/**
+ * Reply to an existing support ticket
+ * @param {string} id
+ * @param {string} message
+ */
+export const replyToVendorSupportTicket = (id, message) => 
+    api.post(`/vendor/support/tickets/${id}/message`, { message });

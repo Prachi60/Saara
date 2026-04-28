@@ -41,7 +41,12 @@ export const rotateRefreshSession = async (accountDoc, payload, incomingRefreshT
     const expiresAt = accountDoc.refreshTokenExpiresAt ? new Date(accountDoc.refreshTokenExpiresAt) : null;
 
     if (!storedHash || incomingHash !== storedHash) {
-        throw new ApiError(401, 'Refresh token is invalid or already rotated.');
+        // If hash doesn't match, it might be a reuse attack.
+        // Revoke the session for security.
+        if (accountDoc.refreshTokenHash) {
+            await clearRefreshSession(accountDoc);
+        }
+        throw new ApiError(401, 'Refresh token is invalid or already used.');
     }
 
     if (expiresAt && expiresAt <= new Date()) {

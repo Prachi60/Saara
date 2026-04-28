@@ -84,15 +84,13 @@ const OrderDetail = () => {
         { value: 'pending', label: 'Pending', color: 'yellow' },
         { value: 'processing', label: 'Processing', color: 'blue' },
         { value: 'shipped', label: 'Shipped', color: 'purple' },
-        { value: 'delivered', label: 'Delivered', color: 'green' },
         { value: 'cancelled', label: 'Cancelled', color: 'red' },
     ];
 
     const transitionMap = {
         pending: ['pending', 'processing', 'cancelled'],
         processing: ['processing', 'shipped', 'cancelled'],
-        shipped: ['shipped', 'delivered'],
-        delivered: ['delivered'],
+        shipped: ['shipped'],
         cancelled: ['cancelled'],
     };
 

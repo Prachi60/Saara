@@ -3,9 +3,11 @@ import { FiX, FiGrid, FiTag, FiHome, FiCompass, FiPlay, FiUser, FiHeart, FiShopp
 import { Link } from "react-router-dom";
 import { appLogo } from "../../../../data/logos";
 import { useAuthStore } from "../../../../shared/store/authStore";
+import { useUIStore } from "../../../../shared/store/useStore";
 
 const MobileSidebar = ({ isOpen, onClose }) => {
   const { user, isAuthenticated } = useAuthStore();
+  const { toggleCart } = useUIStore();
 
   const menuItems = [
     { label: "Home", icon: FiHome, path: "/home" },
@@ -111,14 +113,16 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                   <FiHeart className="text-xl group-hover:scale-110 transition-transform" />
                   <span className="font-medium">My Wishlist</span>
                 </Link>
-                <Link
-                  to="/cart"
-                  onClick={onClose}
-                  className="flex items-center gap-4 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all group"
+                <button
+                  onClick={() => {
+                    onClose();
+                    toggleCart();
+                  }}
+                  className="flex items-center gap-4 w-full px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all group"
                 >
                   <FiShoppingBag className="text-xl group-hover:scale-110 transition-transform" />
-                  <span className="font-medium">My Cart</span>
-                </Link>
+                  <span className="font-medium text-left">My Cart</span>
+                </button>
               </nav>
             </div>
 

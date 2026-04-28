@@ -9,7 +9,7 @@ const bannerSchema = new mongoose.Schema(
         link: String,
         type: {
             type: String,
-            enum: ['home_slider', 'festival_offer', 'banner', 'hero', 'promotional', 'side_banner'],
+            enum: ['home_slider', 'festival_offer', 'banner', 'hero', 'promotional', 'side_banner', 'category_focus_banner', 'category_focus_item', 'deal_item'],
             default: 'banner',
         },
         order: { type: Number, default: 0 },

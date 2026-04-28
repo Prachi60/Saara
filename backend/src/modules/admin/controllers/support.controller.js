@@ -3,6 +3,8 @@ import TicketType from '../../../models/TicketType.model.js';
 import { ApiError } from '../../../utils/ApiError.js';
 import { ApiResponse } from '../../../utils/ApiResponse.js';
 import { asyncHandler } from '../../../utils/asyncHandler.js';
+import { emitToRoom } from '../../../services/socket.service.js';
+import { createNotification } from '../../../services/notification.service.js';
 
 const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -36,7 +38,7 @@ export const getAllTickets = asyncHandler(async (req, res) => {
 
     const tickets = await SupportTicket.find(filter)
         .populate('userId', 'name email phone')
-        .populate('vendorId', 'shopName email')
+        .populate('vendorId', 'storeName email')
         .populate('ticketTypeId', 'name')
         .sort({ updatedAt: -1 })
         .skip((pageNumber - 1) * limitNumber)
@@ -53,7 +55,7 @@ export const getAllTickets = asyncHandler(async (req, res) => {
             email: ticket.userId.email,
             phone: ticket.userId.phone
         } : (ticket.vendorId ? {
-            name: ticket.vendorId.shopName,
+            name: ticket.vendorId.storeName,
             email: ticket.vendorId.email
         } : { name: 'Anonymous' }),
         category: ticket.ticketTypeId ? ticket.ticketTypeId.name : 'General',
@@ -81,7 +83,7 @@ export const getAllTickets = asyncHandler(async (req, res) => {
 export const getTicketById = asyncHandler(async (req, res) => {
     const ticket = await SupportTicket.findById(req.params.id)
         .populate('userId', 'name email phone')
-        .populate('vendorId', 'shopName email')
+        .populate('vendorId', 'storeName email')
         .populate('ticketTypeId', 'name');
 
     if (!ticket) {
@@ -97,7 +99,7 @@ export const getTicketById = asyncHandler(async (req, res) => {
             email: ticket.userId.email,
             phone: ticket.userId.phone
         } : (ticket.vendorId ? {
-            name: ticket.vendorId.shopName,
+            name: ticket.vendorId.storeName,
             email: ticket.vendorId.email
         } : { name: 'Anonymous' }),
         category: ticket.ticketTypeId ? ticket.ticketTypeId.name : 'General'
@@ -126,6 +128,15 @@ export const updateTicketStatus = asyncHandler(async (req, res) => {
     if (priority) ticket.priority = priority;
 
     await ticket.save();
+
+    // Notify user/vendor of status update
+    const roomPrefix = ticket.vendorId ? 'vendor_' : 'user_';
+    const recipientId = ticket.vendorId || ticket.userId;
+    emitToRoom(`${roomPrefix}${recipientId}`, 'new_notification', {
+        type: 'support_ticket_update',
+        ticketId: ticket._id,
+        status: ticket.status
+    });
 
     res.status(200).json(
         new ApiResponse(200, ticket, 'Ticket status updated successfully')
@@ -163,8 +174,22 @@ export const addTicketMessage = asyncHandler(async (req, res) => {
 
     await ticket.save();
 
+    const latestMsg = ticket.messages[ticket.messages.length - 1];
+
+    // Real-time update to the ticket room
+    emitToRoom(`ticket_${ticket._id}`, 'new_support_message', latestMsg);
+
+    // Notify user/vendor specifically
+    const roomPrefix = ticket.vendorId ? 'vendor_' : 'user_';
+    const recipientId = ticket.vendorId || ticket.userId;
+    emitToRoom(`${roomPrefix}${recipientId}`, 'new_notification', {
+        type: 'new_support_message',
+        ticketId: ticket._id,
+        message: trimmedMessage.substring(0, 50)
+    });
+
     res.status(200).json(
-        new ApiResponse(200, ticket.messages[ticket.messages.length - 1], 'Message added successfully')
+        new ApiResponse(200, latestMsg, 'Message added successfully')
     );
 });
 

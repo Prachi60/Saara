@@ -214,8 +214,8 @@ export const getAllTickets = (params = {}) =>
 export const getTicketById = (id) =>
     api.get(`/admin/support/tickets/${id}`);
 
-export const updateTicketStatus = (id, status) =>
-    api.patch(`/admin/support/tickets/${id}/status`, { status });
+export const updateTicketStatus = (id, data) =>
+    api.patch(`/admin/support/tickets/${id}/status`, data);
 
 export const addTicketMessage = (id, message) =>
     api.post(`/admin/support/tickets/${id}/messages`, { message });

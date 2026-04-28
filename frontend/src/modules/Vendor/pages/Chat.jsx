@@ -9,6 +9,7 @@ import {
   sendVendorChatMessage,
   markVendorChatRead,
 } from "../services/vendorService";
+import { getSocket, joinRoom } from "../../../shared/utils/socket";
 
 const Chat = () => {
   const { vendor } = useVendorAuthStore();
@@ -63,6 +64,48 @@ const Chat = () => {
 
     fetchMessages();
   }, [selectedChat?._id]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("vendor-token") || localStorage.getItem("token");
+    if (!token) return;
+
+    const socket = getSocket(token);
+    if (!socket) return;
+
+    // Join vendor-specific room for notifications
+    joinRoom(`vendor_${vendorId}`);
+
+    const handleNotification = (payload) => {
+      if (payload.type === "new_chat_message") {
+        fetchThreads(); // Refresh threads to update last message/unread count
+      }
+    };
+
+    socket.on("new_notification", handleNotification);
+
+    if (selectedChat?._id) {
+      joinRoom(`chat_${selectedChat._id}`);
+      
+      const handleNewMessage = (msg) => {
+        setMessages((prev) => {
+          // Prevent duplicates if the sender is also the current user (already added locally)
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
+      };
+
+      socket.on("new_message", handleNewMessage);
+      
+      return () => {
+        socket.off("new_notification", handleNotification);
+        socket.off("new_message", handleNewMessage);
+      };
+    }
+
+    return () => {
+      socket.off("new_notification", handleNotification);
+    };
+  }, [selectedChat?._id, vendorId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

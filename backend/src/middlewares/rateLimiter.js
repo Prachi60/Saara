@@ -24,3 +24,12 @@ export const otpLimiter = rateLimit({
     max: 3,
     message: { success: false, message: 'Too many OTP requests, please wait a minute.' },
 });
+
+// OTP verification limiter (prevents brute-force)
+export const otpVerifyLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 attempts
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Too many verification attempts, please try again in 15 minutes.' },
+});

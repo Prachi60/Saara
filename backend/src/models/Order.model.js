@@ -62,6 +62,8 @@ const orderSchema = new mongoose.Schema(
         total: { type: Number, default: 0 },
         couponCode: { type: String },
         couponDiscount: { type: Number, default: 0 },
+        invoiceNumber: { type: String, unique: true, sparse: true },
+        invoiceDate: { type: Date },
         idempotencyKey: { type: String, sparse: true },
         idempotencyScope: { type: String, sparse: true },
         trackingNumber: { type: String, unique: true, sparse: true },
@@ -81,6 +83,8 @@ const orderSchema = new mongoose.Schema(
         isDeleted: { type: Boolean, default: false, index: true },
         deletedAt: Date,
         deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+        deliveryPriority: { type: Number, default: 0, index: true },
+        deliverySequence: { type: Number, default: 0 },
     },
     { timestamps: true }
 );

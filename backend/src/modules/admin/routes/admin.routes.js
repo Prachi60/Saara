@@ -13,6 +13,10 @@ import * as reportController from '../controllers/report.controller.js';
 import * as marketingController from '../controllers/marketing.controller.js';
 import * as notificationController from '../controllers/notification.controller.js';
 import * as uploadController from '../controllers/upload.controller.js';
+import * as settingsController from '../controllers/settings.controller.js';
+import * as reelController from '../controllers/reel.controller.js';
+import * as affiliateController from '../controllers/affiliate.controller.js';
+import { audit } from '../../../middlewares/audit.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter } from '../../../middlewares/rateLimiter.js';
@@ -79,15 +83,24 @@ router.get('/analytics/top-products', ...adminAuth, analyticsController.getTopPr
 router.get('/analytics/customer-growth', ...adminAuth, analyticsController.getCustomerGrowth);
 router.get('/analytics/recent-orders', ...adminAuth, analyticsController.getRecentOrders);
 router.get('/analytics/sales', ...adminAuth, analyticsController.getSalesData);
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+router.get('/analytics/dashboard', ...adminAuth, analyticsController.getDashboardStats);
+router.get('/analytics/revenue', ...adminAuth, analyticsController.getRevenueData);
+router.get('/analytics/order-status', ...adminAuth, analyticsController.getOrderStatusBreakdown);
+router.get('/analytics/top-products', ...adminAuth, analyticsController.getTopProducts);
+router.get('/analytics/customer-growth', ...adminAuth, analyticsController.getCustomerGrowth);
+router.get('/analytics/recent-orders', ...adminAuth, analyticsController.getRecentOrders);
+router.get('/analytics/sales', ...adminAuth, analyticsController.getSalesData);
 router.get('/analytics/finance-summary', ...adminAuth, analyticsController.getFinancialSummary);
 router.get('/analytics/inventory-stats', ...adminAuth, analyticsController.getInventoryStats);
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
 router.get('/orders', ...adminAuth, orderController.getAllOrders);
 router.get('/orders/:id', ...adminAuth, orderController.getOrderById);
-router.patch('/orders/:id/status', ...adminAuth, orderController.updateOrderStatus);
-router.patch('/orders/:id/assign-delivery', ...adminAuth, orderController.assignDeliveryBoy);
-router.delete('/orders/:id', ...adminAuth, orderController.deleteOrder);
+router.patch('/orders/:id/status', ...adminAuth, audit('UPDATE_ORDER_STATUS', 'Order'), orderController.updateOrderStatus);
+router.patch('/orders/:id/assign-delivery', ...adminAuth, audit('ASSIGN_DELIVERY', 'Order'), orderController.assignDeliveryBoy);
+router.delete('/orders/:id', ...adminAuth, audit('DELETE_ORDER', 'Order'), orderController.deleteOrder);
 
 // ─── Products ─────────────────────────────────────────────────────────────────
 router.get('/products', ...adminAuth, catalogController.getAllProducts);
@@ -117,8 +130,8 @@ router.get('/vendors', ...adminAuth, validate(vendorListQuerySchema, 'query'), v
 router.get('/vendors/pending', ...adminAuth, (req, res, next) => { req.query.status = 'pending'; next(); }, validate(vendorListQuerySchema, 'query'), vendorController.getAllVendors);
 router.get('/vendors/:id', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.getVendorDetail);
 router.get('/vendors/:id/commissions', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorCommissionsQuerySchema, 'query'), vendorController.getVendorCommissions);
-router.patch('/vendors/:id/status', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorStatusUpdateSchema), vendorController.updateVendorStatus);
-router.patch('/vendors/:id/commission', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorCommissionUpdateSchema), vendorController.updateCommissionRate);
+router.patch('/vendors/:id/status', ...adminAuth, audit('UPDATE_VENDOR_STATUS', 'Vendor'), validate(vendorIdParamSchema, 'params'), validate(vendorStatusUpdateSchema), vendorController.updateVendorStatus);
+router.patch('/vendors/:id/commission', ...adminAuth, audit('UPDATE_VENDOR_COMMISSION', 'Vendor'), validate(vendorIdParamSchema, 'params'), validate(vendorCommissionUpdateSchema), vendorController.updateCommissionRate);
 
 // ─── Customers ────────────────────────────────────────────────────────────────
 router.get('/customers', ...adminAuth, validate(customerListQuerySchema, 'query'), customerController.getAllCustomers);
@@ -127,7 +140,7 @@ router.get('/customers/transactions', ...adminAuth, validate(customerTransaction
 router.get('/customers/:id/orders', ...adminAuth, validate(customerIdParamSchema, 'params'), validate(customerOrdersQuerySchema, 'query'), customerController.getCustomerOrders);
 router.get('/customers/:id', ...adminAuth, validate(customerIdParamSchema, 'params'), customerController.getCustomerById);
 router.put('/customers/:id', ...adminAuth, validate(customerIdParamSchema, 'params'), validate(customerUpdateSchema), customerController.updateCustomerDetail);
-router.patch('/customers/:id/status', ...adminAuth, validate(customerIdParamSchema, 'params'), validate(customerStatusUpdateSchema), customerController.updateCustomerStatus);
+router.patch('/customers/:id/status', ...adminAuth, validate(customerIdParamSchema, 'params'), customerController.updateCustomerStatus);
 router.delete('/customers/:customerId/addresses/:addressId', ...adminAuth, validate(customerAddressParamsSchema, 'params'), customerController.deleteCustomerAddress);
 
 // ─── Delivery ─────────────────────────────────────────────────────────────────
@@ -189,5 +202,18 @@ router.get('/reports/inventory', ...adminAuth, reportController.getInventoryRepo
 router.get('/notifications', ...adminAuth, notificationController.getAdminNotifications);
 router.put('/notifications/:id/read', ...adminAuth, notificationController.markAsRead);
 router.put('/notifications/read-all', ...adminAuth, notificationController.markAllAsRead);
+
+// ─── System Settings ──────────────────────────────────────────────────────────
+router.get('/settings', ...adminAuth, settingsController.getAllSettings);
+router.get('/settings/:key', ...adminAuth, settingsController.getSettings);
+router.put('/settings/:key', ...adminAuth, audit('UPDATE_SETTINGS', 'Settings'), settingsController.updateSettings);
+
+// ─── Reel Moderation ─────────────────────────────────────────────────────────
+router.get('/reels/pending', ...adminAuth, reelController.getPendingReels);
+router.patch('/reels/:id/moderate', ...adminAuth, audit('MODERATE_REEL', 'Reel'), reelController.moderateReel);
+
+// ─── Affiliate Management ───────────────────────────────────────────────────
+router.get('/affiliates/payouts/pending', ...adminAuth, affiliateController.getPendingPayouts);
+router.patch('/affiliates/:id/payouts/:payoutId', ...adminAuth, audit('PROCESS_AFFILIATE_PAYOUT', 'Affiliate'), affiliateController.completePayout);
 
 export default router;

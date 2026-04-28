@@ -39,6 +39,10 @@ export const useAuthStore = create(
           localStorage.setItem('token', accessToken);
           localStorage.setItem('refresh-token', refreshToken);
 
+          // Merge cart after login
+          const { mergeCart } = (await import('./useStore')).useCartStore.getState();
+          await mergeCart();
+
           return { success: true, user };
         } catch (error) {
           const backendMessage = String(
@@ -118,6 +122,11 @@ export const useAuthStore = create(
 
           localStorage.setItem('token', accessToken);
           localStorage.setItem('refresh-token', refreshToken);
+
+          // Merge cart after OTP verification
+          const { mergeCart } = (await import('./useStore')).useCartStore.getState();
+          await mergeCart();
+
           return { success: true, user };
         } catch (error) {
           set({ isLoading: false });
@@ -194,7 +203,11 @@ export const useAuthStore = create(
         });
         localStorage.removeItem('token');
         localStorage.removeItem('refresh-token');
-        localStorage.removeItem('cart-storage');
+        
+        // Properly clear stores
+        import('./useStore').then(m => {
+          m.useCartStore.getState().resetCart();
+        });
         localStorage.removeItem('wishlist-storage');
         localStorage.removeItem('address-storage');
       },

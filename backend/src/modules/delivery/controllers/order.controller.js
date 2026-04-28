@@ -2,10 +2,12 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import Order from '../../../models/Order.model.js';
+import DeliveryBoy from '../../../models/DeliveryBoy.model.js';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 import { sendEmail } from '../../../services/email.service.js';
 import { createNotification } from '../../../services/notification.service.js';
+import { emitToRoom } from '../../../services/socket.service.js';
 
 const DELIVERY_OTP_TTL_MS = 10 * 60 * 1000;
 const DELIVERY_OTP_MAX_ATTEMPTS = 5;
@@ -13,7 +15,8 @@ const DELIVERY_OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const IS_PRODUCTION = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
 
 const hashDeliveryOtp = (otp) => {
-    const secret = process.env.JWT_SECRET || 'delivery-otp-secret';
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error('JWT_SECRET is not configured.');
     return crypto.createHash('sha256').update(`${String(otp)}:${secret}`).digest('hex');
 };
 
@@ -415,6 +418,30 @@ export const resendDeliveryOtp = asyncHandler(async (req, res) => {
     }
 
     return res.status(200).json(new ApiResponse(200, null, 'Delivery OTP resent successfully.'));
+});
+
+// PATCH /api/delivery/location
+export const updateLocation = asyncHandler(async (req, res) => {
+    const { lat, lng } = req.body;
+    if (lat === undefined || lng === undefined) throw new ApiError(400, 'Coordinates required.');
+
+    const deliveryBoy = await DeliveryBoy.findByIdAndUpdate(
+        req.user.id,
+        { currentLocation: { lat, lng } },
+        { new: true }
+    );
+
+    // Emit real-time location to all orders assigned to this delivery boy
+    const activeOrders = await Order.find({ 
+        deliveryBoyId: req.user.id, 
+        status: 'shipped' 
+    }).select('_id orderId');
+
+    activeOrders.forEach(order => {
+        emitToRoom(`order_${order.orderId}`, 'delivery_location_update', { lat, lng });
+    });
+
+    res.status(200).json(new ApiResponse(200, deliveryBoy.currentLocation, 'Location updated.'));
 });
 
 // GET /api/delivery/orders/:id/debug-otp (non-production only)

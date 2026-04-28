@@ -176,6 +176,9 @@ const Banners = () => {
               { value: 'hero', label: 'Hero Banners' },
               { value: 'promotional', label: 'Promotional Banners' },
               { value: 'side_banner', label: 'Side Banners' },
+              { value: 'category_focus_banner', label: 'Category Focus Main' },
+              { value: 'category_focus_item', label: 'Category Focus Items' },
+              { value: 'deal_item', label: 'Deal Items' },
             ]}
             className="min-w-[140px]"
           />
@@ -253,7 +256,13 @@ const Banners = () => {
                                   ? 'Slider'
                                   : banner.type === 'festival_offer'
                                     ? 'Festival'
-                                    : 'Banner'}
+                                    : banner.type === 'category_focus_banner'
+                                      ? 'Cat Main'
+                                      : banner.type === 'category_focus_item'
+                                        ? 'Cat Item'
+                                        : banner.type === 'deal_item'
+                                          ? 'Deal'
+                                          : 'Banner'}
                         </Badge>
                       </div>
                     </div>
@@ -343,4 +352,3 @@ const Banners = () => {
 };
 
 export default Banners;
-

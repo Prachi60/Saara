@@ -12,6 +12,8 @@ import { generateTrackingNumber } from '../../../utils/generateTrackingNumber.js
 import mongoose from 'mongoose';
 import { createNotification } from '../../../services/notification.service.js';
 import { calculateVendorShippingForGroups } from '../../../services/vendorShipping.service.js';
+import { sendOrderConfirmationEmail } from '../../../services/email.service.js';
+import { emitToRoom } from '../../../services/socket.service.js';
 
 const normalizeVariantPart = (value) => String(value || '').trim().toLowerCase();
 const normalizeAxisName = (value) =>
@@ -247,6 +249,8 @@ export const placeOrder = asyncHandler(async (req, res) => {
             throw new ApiError(400, `Only ${variantStockValue} units available for selected variant of ${product.name}.`);
         }
         const itemSubtotal = itemPrice * item.quantity;
+        const itemTaxRate = Number(product.taxRate || 18);
+        const itemTax = parseFloat(((itemSubtotal * itemTaxRate) / 100).toFixed(2));
         subtotal += itemSubtotal;
 
         const variantImage =
@@ -260,6 +264,8 @@ export const placeOrder = asyncHandler(async (req, res) => {
             image: variantImage || product.image,
             price: itemPrice,
             quantity: item.quantity,
+            taxRate: itemTaxRate,
+            tax: itemTax,
             variant: item.variant,
             variantKey: variantKey || undefined,
         };
@@ -318,21 +324,25 @@ export const placeOrder = asyncHandler(async (req, res) => {
         couponType: appliedCoupon?.type || null,
     });
 
-    // 4. Calculate tax (18%)
-    const tax = parseFloat(((subtotal - couponDiscount) * 0.18).toFixed(2));
+    // 4. Calculate dynamic tax
+    const totalTax = enrichedItems.reduce((acc, item) => acc + item.tax, 0);
+    const tax = parseFloat(totalTax.toFixed(2));
     const total = parseFloat((subtotal - couponDiscount + shipping + tax).toFixed(2));
 
-    // 5. Build vendor item groups
-    const vendorItems = Object.values(vendorMap).map((v) => ({
-        vendorId: v.vendorId,
-        vendorName: v.vendorName,
-        items: v.items,
-        subtotal: v.subtotal,
-        shipping: Number(shippingByVendor[String(v.vendorId)] || 0),
-        tax: parseFloat((v.subtotal * 0.18).toFixed(2)),
-        discount: 0,
-        status: 'pending',
-    }));
+    // 5. Build vendor item groups with dynamic tax
+    const vendorItems = Object.values(vendorMap).map((v) => {
+        const vTax = v.items.reduce((acc, item) => acc + (item.tax || 0), 0);
+        return {
+            vendorId: v.vendorId,
+            vendorName: v.vendorName,
+            items: v.items,
+            subtotal: v.subtotal,
+            shipping: Number(shippingByVendor[String(v.vendorId)] || 0),
+            tax: parseFloat(vTax.toFixed(2)),
+            discount: 0,
+            status: 'pending',
+        };
+    });
 
     // 6-9. Transactional order creation to avoid partial writes.
     let order = null;
@@ -351,14 +361,17 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 }
             }
 
+            const orderId = generateOrderId();
+            const orderIdSuffix = orderId;
             const [createdOrder] = await Order.create([{
-                orderId: generateOrderId(),
+                orderId,
                 userId,
                 items: enrichedItems,
                 vendorItems,
                 shippingAddress,
                 paymentMethod: normalizedPaymentMethod,
-                // Keep every new order pending until gateway/webhook confirmation is implemented.
+                // COD orders are automatically confirmed; online orders wait for payment.
+                status: normalizedPaymentMethod === 'cod' ? 'processing' : 'pending',
                 paymentStatus: 'pending',
                 subtotal,
                 shipping,
@@ -369,6 +382,8 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 couponDiscount,
                 trackingNumber: generateTrackingNumber(),
                 estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // +5 days
+                invoiceNumber: `INV-${orderIdSuffix}`, // Using the generated Order ID suffix or full ID
+                invoiceDate: new Date(),
                 idempotencyKey: idempotencyKey || undefined,
                 idempotencyScope: idempotencyKey ? idempotencyScope : undefined,
             }], { session });
@@ -482,6 +497,35 @@ export const placeOrder = asyncHandler(async (req, res) => {
             responseMessage
         )
     );
+
+    // Send confirmation email and notifications (async, non-blocking)
+    if (!idempotentReplay && order?.orderId) {
+        const emailAddress = order?.shippingAddress?.email || (req.user?.email);
+        if (emailAddress) {
+            sendOrderConfirmationEmail(order, emailAddress).catch((err) =>
+                console.error(`[Order Email] Failed to send for ${order.orderId}:`, err.message)
+            );
+        }
+
+        if (userId) {
+            createNotification({
+                userId,
+                title: 'Order Placed!',
+                message: `Your order ${order.orderId} has been placed successfully.`,
+                type: 'order',
+                link: `/orders/${order.orderId}`,
+            }).catch((err) => console.error('[Order Notification] Failed to create:', err.message));
+        }
+
+        // Notify vendors in real-time via Socket.io
+        (order.vendorItems || []).forEach((vGroup) => {
+            emitToRoom(`vendor_${vGroup.vendorId}`, 'new_order', {
+                orderId: order.orderId,
+                total: vGroup.subtotal,
+                itemsCount: vGroup.items.length,
+            });
+        });
+    }
 });
 
 // GET /api/user/orders

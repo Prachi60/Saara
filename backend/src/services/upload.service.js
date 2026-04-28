@@ -9,7 +9,12 @@ import fs from 'fs/promises';
  * @returns {Promise<{url: string, publicId: string}>}
  */
 export const uploadToCloudinary = async (localFilePath, folder, publicId) => {
-    const uploadOptions = { folder, resource_type: 'image' };
+    const uploadOptions = { 
+        folder, 
+        resource_type: 'image',
+        quality: 'auto',
+        fetch_format: 'auto'
+    };
     if (publicId) uploadOptions.public_id = publicId;
 
     const result = await cloudinary.uploader.upload(localFilePath, uploadOptions);

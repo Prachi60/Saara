@@ -4,6 +4,7 @@ import ApiError from '../../../utils/ApiError.js';
 import Order from '../../../models/Order.model.js';
 import VendorChatThread from '../../../models/VendorChatThread.model.js';
 import VendorChatMessage from '../../../models/VendorChatMessage.model.js';
+import { emitToRoom } from '../../../services/socket.service.js';
 
 const buildThreadSeedFromOrder = (order) => {
     const customerName =
@@ -39,38 +40,6 @@ const serializeMessage = (messageDoc) => ({
 
 export const getVendorChatThreads = asyncHandler(async (req, res) => {
     const vendorId = req.user.id;
-
-    const recentOrders = await Order.find({ 'vendorItems.vendorId': vendorId })
-        .sort({ createdAt: -1 })
-        .limit(100)
-        .select('_id orderId userId guestInfo shippingAddress createdAt')
-        .lean();
-
-    for (const order of recentOrders) {
-        const seed = buildThreadSeedFromOrder(order);
-        await VendorChatThread.updateOne(
-            { vendorId, orderRef: order._id },
-            {
-                $setOnInsert: {
-                    vendorId,
-                    orderRef: order._id,
-                    ...seed,
-                    lastMessage: 'Hello, I need help with my order',
-                    lastActivity: order?.createdAt || new Date(),
-                    unreadCount: 0,
-                },
-                $set: {
-                    orderDisplayId: seed.orderDisplayId,
-                    customerUserId: seed.customerUserId,
-                    customerName: seed.customerName,
-                    customerEmail: seed.customerEmail,
-                    customerPhone: seed.customerPhone,
-                },
-            },
-            { upsert: true }
-        );
-    }
-
     const threads = await VendorChatThread.find({ vendorId }).sort({ lastActivity: -1 });
     res.status(200).json(new ApiResponse(200, threads, 'Chat threads fetched.'));
 });
@@ -130,7 +99,12 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
     thread.lastActivity = created.createdAt;
     await thread.save();
 
-    res.status(201).json(new ApiResponse(201, serializeMessage(created), 'Message sent.'));
+    const serialized = serializeMessage(created);
+    
+    // Emit to socket room (both customer and vendor could be listening)
+    emitToRoom(`chat_${thread._id}`, 'new_message', serialized);
+
+    res.status(201).json(new ApiResponse(201, serialized, 'Message sent.'));
 });
 
 export const markVendorChatRead = asyncHandler(async (req, res) => {

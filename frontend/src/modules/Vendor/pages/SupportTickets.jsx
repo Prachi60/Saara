@@ -8,6 +8,7 @@ import {
   FiArrowLeft,
   FiCalendar,
   FiTag,
+  FiSend
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import DataTable from "../../Admin/components/DataTable";
@@ -15,52 +16,95 @@ import Badge from "../../../shared/components/Badge";
 import AnimatedSelect from "../../Admin/components/AnimatedSelect";
 import { useVendorAuthStore } from "../store/vendorAuthStore";
 import toast from "react-hot-toast";
+import { 
+    getVendorSupportTickets, 
+    getVendorSupportTicketTypes,
+    createVendorSupportTicket, 
+    replyToVendorSupportTicket 
+} from "../services/vendorService";
+import { getSocket, joinRoom } from "../../../shared/utils/socket";
 
 const SupportTickets = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { vendor } = useVendorAuthStore();
   const [tickets, setTickets] = useState([]);
+  const [ticketTypes, setTicketTypes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
 
-  const vendorId = vendor?.id;
+  useEffect(() => {
+    fetchTickets();
+    fetchTicketTypes();
+  }, []);
+
+  const fetchTicketTypes = async () => {
+    try {
+      const res = await getVendorSupportTicketTypes();
+      setTicketTypes(res.data || []);
+    } catch (err) {
+      console.error("Failed to load ticket types", err);
+    }
+  };
 
   useEffect(() => {
-    if (!vendorId) return;
+    const token = localStorage.getItem('vendor-token') || localStorage.getItem('token');
+    if (!token) return;
+    
+    const socket = getSocket(token);
+    if (!socket) return;
 
-    const savedTickets = localStorage.getItem(`vendor-${vendorId}-tickets`);
-    if (savedTickets) {
-      setTickets(JSON.parse(savedTickets));
+    const handleNotification = (payload) => {
+        if (payload.type === 'support_ticket_update' || payload.type === 'new_support_message') {
+            fetchTickets();
+        }
+    };
+
+    socket.on('new_notification', handleNotification);
+    
+    return () => {
+        socket.off('new_notification', handleNotification);
+    };
+  }, []);
+
+  const fetchTickets = async () => {
+    setIsLoading(true);
+    try {
+        const res = await getVendorSupportTickets();
+        setTickets(res.data || []);
+    } catch (err) {
+        toast.error("Failed to load tickets");
+    } finally {
+        setIsLoading(false);
     }
-  }, [vendorId]);
+  };
 
   const filteredTickets = tickets.filter((ticket) => {
     const matchesSearch =
       !searchQuery ||
-      ticket.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ticket._id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.subject?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || ticket.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const handleSave = (ticketData) => {
-    const updated = [
-      ...tickets,
-      {
-        ...ticketData,
-        id: `TKT-${Date.now()}`,
-        vendorId,
-        createdAt: new Date().toISOString(),
-        status: "open",
-      },
-    ];
-    setTickets(updated);
-    localStorage.setItem(`vendor-${vendorId}-tickets`, JSON.stringify(updated));
-    setShowForm(false);
-    toast.success("Ticket created successfully");
+  const handleSave = async (ticketData) => {
+    try {
+        await createVendorSupportTicket({
+            subject: ticketData.subject,
+            message: ticketData.description,
+            priority: ticketData.priority,
+            ticketTypeId: ticketData.ticketTypeId
+        });
+        setShowForm(false);
+        toast.success("Ticket created successfully");
+        fetchTickets();
+    } catch (err) {
+        toast.error(err.message || "Failed to create ticket");
+    }
   };
 
   const getStatusVariant = (status) => {
@@ -84,11 +128,13 @@ const SupportTickets = () => {
 
   const columns = [
     {
-      key: "id",
+      key: "_id",
       label: "Ticket ID",
       sortable: true,
       render: (value) => (
-        <span className="font-semibold text-gray-800">{value}</span>
+        <span className="font-semibold text-gray-800">
+          #{value ? value.substring(value.length - 6) : 'N/A'}
+        </span>
       ),
     },
     {
@@ -97,17 +143,12 @@ const SupportTickets = () => {
       sortable: true,
     },
     {
-      key: "type",
-      label: "Type",
-      sortable: true,
-    },
-    {
       key: "priority",
       label: "Priority",
       sortable: true,
       render: (value) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(
+          className={`px-2 py-1 rounded text-xs font-medium uppercase ${getPriorityColor(
             value
           )}`}>
           {value}
@@ -119,7 +160,7 @@ const SupportTickets = () => {
       label: "Status",
       sortable: true,
       render: (value) => (
-        <Badge variant={getStatusVariant(value)}>{value}</Badge>
+        <Badge variant={getStatusVariant(value)}>{value.replace('_', ' ')}</Badge>
       ),
     },
     {
@@ -133,7 +174,7 @@ const SupportTickets = () => {
       label: "Actions",
       render: (_, row) => (
         <button
-          onClick={() => navigate(`/vendor/support-tickets/${row.id}`)}
+          onClick={() => navigate(`/vendor/support-tickets/${row._id}`)}
           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
           <FiEye />
         </button>
@@ -141,51 +182,34 @@ const SupportTickets = () => {
     },
   ];
 
-  // Find ticket by ID if viewing detail
-  const selectedTicket = id ? tickets.find((ticket) => ticket.id === id) : null;
-
-  // If ID is present but ticket not found, redirect to list
-  useEffect(() => {
-    if (id && tickets.length > 0 && !selectedTicket) {
-      toast.error("Ticket not found");
-      navigate("/vendor/support-tickets");
+  if (id) {
+    const ticket = tickets.find(t => t._id === id);
+    if (ticket) {
+        return (
+            <TicketDetail
+              ticket={ticket}
+              navigate={navigate}
+              getStatusVariant={getStatusVariant}
+              getPriorityColor={getPriorityColor}
+              onReply={fetchTickets}
+            />
+        );
     }
-  }, [id, tickets, selectedTicket, navigate]);
-
-  if (!vendorId) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">Please log in to view tickets</p>
-      </div>
-    );
   }
 
-  // Render detail view if ID is present and ticket is found
-  if (id && selectedTicket) {
-    return (
-      <TicketDetail
-        ticket={selectedTicket}
-        navigate={navigate}
-        getStatusVariant={getStatusVariant}
-        getPriorityColor={getPriorityColor}
-      />
-    );
-  }
-
-  // Render list view
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="lg:hidden">
+        <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
             <FiMessageSquare className="text-primary-600" />
             Support Tickets
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
-            Create and manage support tickets
+            Create and manage support tickets with platform admin
           </p>
         </div>
         <button
@@ -196,7 +220,6 @@ const SupportTickets = () => {
         </button>
       </div>
 
-      {/* Filters */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
           <div className="relative flex-1 w-full sm:min-w-[200px]">
@@ -225,8 +248,9 @@ const SupportTickets = () => {
         </div>
       </div>
 
-      {/* Tickets Table */}
-      {filteredTickets.length > 0 ? (
+      {isLoading ? (
+        <div className="text-center py-12">Loading tickets...</div>
+      ) : filteredTickets.length > 0 ? (
         <DataTable
           data={filteredTickets}
           columns={columns}
@@ -240,7 +264,11 @@ const SupportTickets = () => {
       )}
 
       {showForm && (
-        <TicketForm onSave={handleSave} onClose={() => setShowForm(false)} />
+        <TicketForm 
+          onSave={handleSave} 
+          onClose={() => setShowForm(false)} 
+          ticketTypes={ticketTypes}
+        />
       )}
     </motion.div>
   );
@@ -251,7 +279,32 @@ const TicketDetail = ({
   navigate,
   getStatusVariant,
   getPriorityColor,
+  onReply
 }) => {
+  const [reply, setReply] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    joinRoom(`ticket_${ticket._id}`);
+  }, [ticket._id]);
+
+  const handleSendReply = async (e) => {
+    e.preventDefault();
+    if (!reply.trim()) return;
+
+    setIsSending(true);
+    try {
+        await replyToVendorSupportTicket(ticket._id, reply);
+        setReply("");
+        toast.success("Reply sent");
+        onReply();
+    } catch (err) {
+        toast.error("Failed to send reply");
+    } finally {
+        setIsSending(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -268,106 +321,101 @@ const TicketDetail = ({
             Ticket Details
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            View and manage ticket information
+            #{ticket._id}
           </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-6">
-        {/* Ticket Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-200">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-xl font-bold text-gray-800">
-                {ticket.subject}
-              </h2>
-              <Badge variant={getStatusVariant(ticket.status)}>
-                {ticket.status}
-              </Badge>
-            </div>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-              <span className="flex items-center gap-1">
-                <FiTag />
-                Ticket ID:{" "}
-                <span className="font-semibold text-gray-800">{ticket.id}</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <FiCalendar />
-                Created: {new Date(ticket.createdAt).toLocaleDateString()}
-              </span>
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+              {/* Messages Area */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[600px]">
+                  <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                      <h2 className="font-bold text-gray-800">{ticket.subject}</h2>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                      {ticket.messages?.map((msg, idx) => (
+                          <div key={idx} className={`flex ${msg.senderType === 'vendor' ? 'justify-end' : 'justify-start'}`}>
+                              <div className={`max-w-[80%] rounded-2xl px-4 py-2 shadow-sm ${
+                                  msg.senderType === 'vendor' 
+                                  ? 'bg-primary-600 text-white rounded-tr-none' 
+                                  : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                              }`}>
+                                  <p className="text-sm">{msg.message}</p>
+                                  <p className={`text-[10px] mt-1 ${msg.senderType === 'vendor' ? 'text-primary-100' : 'text-gray-400'}`}>
+                                      {new Date(msg.createdAt).toLocaleTimeString()}
+                                  </p>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
 
-        {/* Ticket Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="text-sm font-semibold text-gray-600 block mb-2">
-              Type
-            </label>
-            <p className="text-gray-800">{ticket.type}</p>
+                  <form onSubmit={handleSendReply} className="p-4 border-t border-gray-100 bg-white">
+                      <div className="flex gap-2">
+                          <input 
+                            value={reply}
+                            onChange={(e) => setReply(e.target.value)}
+                            placeholder="Type your message..."
+                            disabled={ticket.status === 'closed'}
+                            className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+                          />
+                          <button 
+                            type="submit"
+                            disabled={isSending || ticket.status === 'closed' || !reply.trim()}
+                            className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50"
+                          >
+                              <FiSend />
+                          </button>
+                      </div>
+                      {ticket.status === 'closed' && (
+                          <p className="text-xs text-red-500 mt-2 text-center">This ticket is closed and cannot be replied to.</p>
+                      )}
+                  </form>
+              </div>
           </div>
-          <div>
-            <label className="text-sm font-semibold text-gray-600 block mb-2">
-              Priority
-            </label>
-            <span
-              className={`inline-block px-3 py-1 rounded text-sm font-medium ${getPriorityColor(
-                ticket.priority
-              )}`}>
-              {ticket.priority}
-            </span>
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-gray-600 block mb-2">
-              Status
-            </label>
-            <Badge variant={getStatusVariant(ticket.status)}>
-              {ticket.status}
-            </Badge>
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-gray-600 block mb-2">
-              Created Date
-            </label>
-            <p className="text-gray-800">
-              {new Date(ticket.createdAt).toLocaleString()}
-            </p>
-          </div>
-        </div>
 
-        {/* Description */}
-        <div>
-          <label className="text-sm font-semibold text-gray-600 block mb-2">
-            Description
-          </label>
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <p className="text-gray-800 whitespace-pre-wrap">
-              {ticket.description}
-            </p>
+          <div className="space-y-6">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                  <h3 className="font-bold text-gray-800 mb-4 pb-2 border-b border-gray-50">Ticket Info</h3>
+                  <div className="space-y-4">
+                      <div>
+                          <label className="text-xs font-bold text-gray-400 uppercase">Status</label>
+                          <div className="mt-1">
+                            <Badge variant={getStatusVariant(ticket.status)}>{ticket.status}</Badge>
+                          </div>
+                      </div>
+                      <div>
+                          <label className="text-xs font-bold text-gray-400 uppercase">Priority</label>
+                          <div className={`mt-1 inline-block px-2 py-1 rounded text-xs font-bold uppercase ${getPriorityColor(ticket.priority)}`}>
+                              {ticket.priority}
+                          </div>
+                      </div>
+                      <div>
+                          <label className="text-xs font-bold text-gray-400 uppercase">Created At</label>
+                          <p className="text-sm text-gray-700 mt-1">{new Date(ticket.createdAt).toLocaleString()}</p>
+                      </div>
+                  </div>
+              </div>
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-4 border-t border-gray-200">
-          <button
-            onClick={() => navigate("/vendor/support-tickets")}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-semibold">
-            Back to Tickets
-          </button>
-        </div>
       </div>
     </motion.div>
   );
 };
 
-const TicketForm = ({ onSave, onClose }) => {
+const TicketForm = ({ onSave, onClose, ticketTypes = [] }) => {
   const [formData, setFormData] = useState({
     subject: "",
-    type: "Technical Support",
+    ticketTypeId: ticketTypes[0]?._id || "",
     priority: "medium",
     description: "",
   });
+
+  useEffect(() => {
+    if (ticketTypes.length > 0 && !formData.ticketTypeId) {
+      setFormData(prev => ({ ...prev, ticketTypeId: ticketTypes[0]._id }));
+    }
+  }, [ticketTypes]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -375,12 +423,16 @@ const TicketForm = ({ onSave, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[10000] flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-bold mb-4">Create Support Ticket</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="fixed inset-0 bg-black/50 z-[10000] flex items-center justify-center p-4 backdrop-blur-sm">
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+      >
+        <h3 className="text-xl font-bold mb-6 text-gray-800">Create Support Ticket</h3>
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold mb-2">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
               Subject *
             </label>
             <input
@@ -389,27 +441,29 @@ const TicketForm = ({ onSave, onClose }) => {
               onChange={(e) =>
                 setFormData({ ...formData, subject: e.target.value })
               }
+              placeholder="Brief summary of your issue"
               required
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold mb-2">Type</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Type</label>
               <select
-                value={formData.type}
+                value={formData.ticketTypeId}
                 onChange={(e) =>
-                  setFormData({ ...formData, type: e.target.value })
+                  setFormData({ ...formData, ticketTypeId: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg">
-                <option>Technical Support</option>
-                <option>Billing Inquiry</option>
-                <option>Product Inquiry</option>
-                <option>Other</option>
+                required
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none">
+                <option value="">Select Category</option>
+                {ticketTypes.map(type => (
+                  <option key={type._id} value={type._id}>{type.name}</option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
                 Priority
               </label>
               <select
@@ -417,7 +471,7 @@ const TicketForm = ({ onSave, onClose }) => {
                 onChange={(e) =>
                   setFormData({ ...formData, priority: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg">
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none uppercase">
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -425,7 +479,7 @@ const TicketForm = ({ onSave, onClose }) => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-2">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
               Description *
             </label>
             <textarea
@@ -433,26 +487,27 @@ const TicketForm = ({ onSave, onClose }) => {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
+              placeholder="Please provide as much detail as possible..."
               required
               rows="6"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none resize-none"
             />
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-100 rounded-lg">
+              className="px-6 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors">
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg">
-              Create
+              className="px-6 py-2.5 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 transition-colors shadow-lg shadow-primary-200">
+              Create Ticket
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

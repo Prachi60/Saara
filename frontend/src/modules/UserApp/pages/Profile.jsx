@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { FiUser, FiMail, FiPhone, FiLock, FiEye, FiEyeOff, FiSave, FiCamera, FiArrowLeft, FiPackage, FiMapPin, FiLogOut, FiChevronRight, FiBell } from 'react-icons/fi';
+import { FiUser, FiMail, FiPhone, FiLock, FiEye, FiEyeOff, FiSave, FiCamera, FiArrowLeft, FiPackage, FiMapPin, FiLogOut, FiChevronRight, FiBell, FiMessageCircle } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -136,6 +136,7 @@ const MobileProfile = () => {
   const menuOptions = [
     { id: 'personal', label: 'Personal Information', icon: FiUser, color: 'text-blue-600', bg: 'bg-blue-50' },
     { id: 'orders', label: 'My Orders', icon: FiPackage, color: 'text-orange-600', bg: 'bg-orange-50', link: '/orders' },
+    { id: 'chats', label: 'My Chats', icon: FiMessageCircle, color: 'text-pink-600', bg: 'bg-pink-50', link: '/chats' },
     { id: 'addresses', label: 'My Addresses', icon: FiMapPin, color: 'text-green-600', bg: 'bg-green-50', link: '/addresses' },
     {
       id: 'notifications',
@@ -147,6 +148,7 @@ const MobileProfile = () => {
       badge: unreadNotificationCount > 0 ? unreadNotificationCount : null,
     },
     { id: 'password', label: 'Change Password', icon: FiLock, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { id: 'support', label: 'Support Tickets', icon: FiMessageCircle, color: 'text-teal-600', bg: 'bg-teal-50', link: '/support' },
   ];
 
   return (

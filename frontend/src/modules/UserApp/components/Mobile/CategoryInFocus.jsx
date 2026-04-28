@@ -3,14 +3,23 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import LazyImage from '../../../../shared/components/LazyImage';
 
-const CategoryInFocus = () => {
-  const focusItems = [
+const CategoryInFocus = ({ banner, items }) => {
+  const defaultItems = [
     { name: 'Conditioner', image: 'https://images.pexels.com/photos/4465124/pexels-photo-4465124.jpeg?auto=compress&cs=tinysrgb&w=200' },
     { name: 'Foundation', image: 'https://images.pexels.com/photos/3373736/pexels-photo-3373736.jpeg?auto=compress&cs=tinysrgb&w=200' },
     { name: 'Blush', image: 'https://images.pexels.com/photos/2533266/pexels-photo-2533266.jpeg?auto=compress&cs=tinysrgb&w=200' },
     { name: 'Lipsticks', image: 'https://images.pexels.com/photos/2533261/pexels-photo-2533261.jpeg?auto=compress&cs=tinysrgb&w=200' },
     { name: 'Mascara', image: 'https://images.pexels.com/photos/3373746/pexels-photo-3373746.jpeg?auto=compress&cs=tinysrgb&w=200' },
   ];
+
+  const focusItems = items && items.length > 0 ? items : defaultItems;
+  const displayBanner = banner || {
+    title: "BEST OF GLOBAL BEAUTY",
+    subtitle: "Up To 30% Off",
+    description: "Complimentary Gifts On Select Brands",
+    image: "https://images.pexels.com/photos/3738339/pexels-photo-3738339.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    link: "/search?q=beauty"
+  };
 
   return (
     <div className="py-6 bg-white">
@@ -20,34 +29,40 @@ const CategoryInFocus = () => {
 
       {/* Main Banner */}
       <div className="px-4 mb-6">
-        <motion.div 
-          whileTap={{ scale: 0.98 }}
-          className="relative rounded-2xl overflow-hidden aspect-[16/9] shadow-lg">
-          <img 
-            src="https://images.pexels.com/photos/3738339/pexels-photo-3738339.jpeg?auto=compress&cs=tinysrgb&w=1200" 
-            alt="Beauty Banner"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/20 to-transparent p-5 flex flex-col justify-end">
-            <div className="max-w-[70%]">
-              <h3 className="text-white text-lg font-black leading-tight uppercase mb-1">
-                BEST OF <br /> GLOBAL BEAUTY
-              </h3>
-              <div className="bg-white/20 backdrop-blur-md rounded-lg px-2 py-1 w-fit mb-2">
-                <p className="text-white text-lg font-black">Up To 30% Off</p>
+        <Link to={displayBanner.link}>
+          <motion.div 
+            whileTap={{ scale: 0.98 }}
+            className="relative rounded-2xl overflow-hidden aspect-[16/9] shadow-lg">
+            <img 
+              src={displayBanner.image} 
+              alt={displayBanner.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/20 to-transparent p-5 flex flex-col justify-end">
+              <div className="max-w-[70%]">
+                <h3 className="text-white text-lg font-black leading-tight uppercase mb-1">
+                  {displayBanner.title}
+                </h3>
+                {displayBanner.subtitle && (
+                  <div className="bg-white/20 backdrop-blur-md rounded-lg px-2 py-1 w-fit mb-2">
+                    <p className="text-white text-lg font-black">{displayBanner.subtitle}</p>
+                  </div>
+                )}
+                {displayBanner.description && (
+                  <p className="text-white/80 text-[10px] font-medium leading-tight">
+                    {displayBanner.description}
+                  </p>
+                )}
               </div>
-              <p className="text-white/80 text-[10px] font-medium leading-tight">
-                Complimentary Gifts On Select Brands
-              </p>
+              {/* Mock Global Store Logo */}
+              <div className="absolute top-4 right-4 text-right">
+                <p className="text-white text-[8px] font-bold tracking-widest opacity-80">NYKAA</p>
+                <p className="text-white text-xs font-black tracking-tighter">GLOBAL</p>
+                <p className="text-white text-[8px] font-bold opacity-80">STORE</p>
+              </div>
             </div>
-            {/* Mock Global Store Logo */}
-            <div className="absolute top-4 right-4 text-right">
-              <p className="text-white text-[8px] font-bold tracking-widest opacity-80">NYKAA</p>
-              <p className="text-white text-xs font-black tracking-tighter">GLOBAL</p>
-              <p className="text-white text-[8px] font-bold opacity-80">STORE</p>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </Link>
       </div>
 
       {/* Circular Sub-categories */}

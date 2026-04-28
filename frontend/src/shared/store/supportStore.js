@@ -41,18 +41,18 @@ export const useSupportStore = create((set, get) => ({
         }
     },
 
-    updateTicketStatus: async (id, status) => {
+    updateTicketStatus: async (id, data) => {
         try {
-            await adminService.updateTicketStatus(id, status);
+            await adminService.updateTicketStatus(id, data);
             set((state) => ({
                 tickets: state.tickets.map((t) =>
-                    t.id === id ? { ...t, status } : t
+                    t.id === id ? { ...t, ...data } : t
                 )
             }));
-            toast.success('Status updated successfully');
+            toast.success('Ticket updated successfully');
             return true;
         } catch (error) {
-            toast.error(error.message || 'Failed to update status');
+            toast.error(error.message || 'Failed to update ticket');
             return false;
         }
     },

@@ -32,8 +32,10 @@ const isValidDeliveryDocToken = (relativePath, rawToken) => {
     if (!Number.isFinite(exp) || exp <= Date.now() || !providedSignature) return false;
 
     const payload = `${relativePath}|${exp}`;
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error('JWT_SECRET is not configured.');
     const expectedSignature = crypto
-        .createHmac('sha256', process.env.JWT_SECRET || 'delivery-doc-secret')
+        .createHmac('sha256', secret)
         .update(payload)
         .digest('hex');
 
@@ -41,11 +43,21 @@ const isValidDeliveryDocToken = (relativePath, rawToken) => {
     return crypto.timingSafeEqual(Buffer.from(providedSignature), Buffer.from(expectedSignature));
 };
 
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const ALLOWED_ORIGINS = process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',').map((o) => o.trim())
+    : ['http://localhost:5173'];
+
 // ─── Security Middleware ─────────────────────────────────────────────────────
 app.use(helmet());
 app.use(mongoSanitize());
 app.use(cors({
-    origin: (origin, callback) => callback(null, true),
+    origin: IS_PRODUCTION
+        ? (origin, callback) => {
+            if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+            callback(new Error(`CORS policy: Origin ${origin} not allowed.`));
+        }
+        : true, // Allow all origins in development
     credentials: true,
 }));
 

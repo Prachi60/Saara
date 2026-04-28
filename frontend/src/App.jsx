@@ -131,6 +131,8 @@ import MobileTrackOrder from "./modules/UserApp/pages/TrackOrder";
 import MobileOrderConfirmation from "./modules/UserApp/pages/OrderConfirmation";
 import PolicyPage from "./modules/UserApp/pages/PolicyPage";
 import SimilarExplore from "./modules/UserApp/pages/SimilarExplore";
+import UserChats from "./modules/UserApp/pages/Chats";
+import UserSupport from "./modules/UserApp/pages/Support";
 import ComingSoon from "./modules/UserApp/pages/ComingSoon";
 import ReelsPage from "./modules/Reels/pages/ReelsPage";
 import CreatorProfile from "./modules/Reels/pages/CreatorProfile";
@@ -140,8 +142,7 @@ import FollowersList from "./modules/Reels/pages/FollowersList";
 import WalletPage from "./modules/Affiliate/pages/WalletPage";
 import ExplorePage from "./modules/Explore/pages/ExplorePage";
 import VendorAffiliateDashboard from "./modules/VendorAffiliate/pages/AffiliateDashboard";
-import BuilderDashboard from "./modules/WebsiteBuilder/pages/BuilderDashboard";
-import StorePreview from "./modules/WebsiteBuilder/pages/StorePreview";
+
 import ReelModeration from "./modules/AdminSocial/pages/ReelModeration";
 import AffiliatePayouts from "./modules/AdminSocial/pages/AffiliatePayouts";
 import AuditLogs from "./modules/AdminSocial/pages/AuditLogs";
@@ -420,14 +421,7 @@ const AppRoutes = () => {
           </RouteWrapper>
         }
       />
-      <Route
-        path="/store/:vendorId"
-        element={
-          <RouteWrapper>
-            <StorePreview />
-          </RouteWrapper>
-        }
-      />
+
       <Route
         path="/order-confirmation/:orderId"
         element={
@@ -453,6 +447,26 @@ const AppRoutes = () => {
         element={
           <RouteWrapper>
             <MobileTrackOrder />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/chats"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <UserChats />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/support"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <UserSupport />
+            </ProtectedRoute>
           </RouteWrapper>
         }
       />
@@ -670,7 +684,7 @@ const AppRoutes = () => {
         <Route index element={<Navigate to="/vendor/dashboard" replace />} />
         <Route path="dashboard" element={<VendorDashboard />} />
         <Route path="affiliate" element={<VendorAffiliateDashboard />} />
-        <Route path="builder" element={<BuilderDashboard />} />
+
         <Route path="products" element={<VendorProducts />} />
         <Route
           path="products/manage-products"

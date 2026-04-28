@@ -5,9 +5,12 @@ import * as wishlistController from '../controllers/wishlist.controller.js';
 import * as reviewController from '../controllers/review.controller.js';
 import * as orderController from '../controllers/order.controller.js';
 import * as notificationController from '../controllers/notification.controller.js';
+import * as cartController from '../controllers/cart.controller.js';
+import * as chatController from '../controllers/chat.controller.js';
+import * as supportController from '../controllers/support.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
-import { authLimiter, otpLimiter } from '../../../middlewares/rateLimiter.js';
+import { authLimiter, otpLimiter, otpVerifyLimiter } from '../../../middlewares/rateLimiter.js';
 import { validate } from '../../../middlewares/validate.js';
 import { uploadSingle } from '../../../middlewares/upload.js';
 import {
@@ -34,10 +37,10 @@ const customerAuth = [authenticate, authorize('customer'), enforceAccountStatus]
 
 // Auth routes
 router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);
-router.post('/auth/verify-otp', validate(otpSchema), authController.verifyOTP);
+router.post('/auth/verify-otp', otpVerifyLimiter, validate(otpSchema), authController.verifyOTP);
 router.post('/auth/resend-otp', otpLimiter, validate(resendOtpSchema), authController.resendOTP);
 router.post('/auth/forgot-password', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
-router.post('/auth/verify-reset-otp', authLimiter, validate(verifyResetOtpSchema), authController.verifyResetOTP);
+router.post('/auth/verify-reset-otp', otpVerifyLimiter, validate(verifyResetOtpSchema), authController.verifyResetOTP);
 router.post('/auth/reset-password', authLimiter, validate(resetPasswordSchema), authController.resetPassword);
 router.post('/auth/login', authLimiter, validate(loginSchema), authController.login);
 router.post('/auth/refresh', validate(refreshTokenSchema), authController.refresh);
@@ -62,7 +65,8 @@ router.delete('/wishlist/:productId', ...customerAuth, wishlistController.remove
 // Review routes
 router.get('/reviews/product/:productId', reviewController.getProductReviews);
 router.post('/reviews', ...customerAuth, reviewController.addReview);
-router.post('/reviews/:id/helpful', reviewController.voteHelpful);
+router.post('/reviews/:id/vote', ...customerAuth, reviewController.voteReview);
+router.delete('/reviews/:id', ...customerAuth, reviewController.deleteReview);
 
 // Order routes
 router.post('/orders', ...customerAuth, validate(placeOrderSchema), orderController.placeOrder);
@@ -78,5 +82,26 @@ router.get('/notifications', ...customerAuth, notificationController.getUserNoti
 router.put('/notifications/:id/read', ...customerAuth, notificationController.markUserNotificationAsRead);
 router.put('/notifications/read-all', ...customerAuth, notificationController.markAllUserNotificationsAsRead);
 router.delete('/notifications/:id', ...customerAuth, notificationController.deleteUserNotification);
+
+// Cart routes (protected)
+router.get('/cart', ...customerAuth, cartController.getCart);
+router.post('/cart/add', ...customerAuth, cartController.addToCart);
+router.put('/cart/update', ...customerAuth, cartController.updateCartItem);
+router.delete('/cart/item/:itemId', ...customerAuth, cartController.removeFromCart);
+router.delete('/cart/clear', ...customerAuth, cartController.clearCart);
+router.post('/cart/merge', ...customerAuth, cartController.mergeCart);
+
+// Chat routes (protected)
+router.get('/chat/threads', ...customerAuth, chatController.getUserChatThreads);
+router.get('/chat/threads/:id/messages', ...customerAuth, chatController.getUserChatMessages);
+router.post('/chat/threads/:id/messages', ...customerAuth, chatController.sendUserChatMessage);
+router.post('/chat/initiate', ...customerAuth, chatController.initiateChatWithVendor);
+
+// Support routes (protected)
+router.post('/support/tickets', ...customerAuth, supportController.createTicket);
+router.get('/support/tickets', ...customerAuth, supportController.getUserTickets);
+router.get('/support/tickets/:id', ...customerAuth, supportController.getTicketById);
+router.post('/support/tickets/:id/messages', ...customerAuth, supportController.addTicketMessage);
+router.get('/support/ticket-types', ...customerAuth, supportController.getActiveTicketTypes);
 
 export default router;

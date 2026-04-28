@@ -9,6 +9,7 @@ import { useBannerStore } from "../../../../shared/store/bannerStore";
 import { getPlaceholderImage } from "../../../../shared/utils/helpers";
 import toast from "react-hot-toast";
 import { uploadAdminImage } from "../../services/adminService";
+import LinkPicker from "../../components/Banners/LinkPicker";
 
 const SLIDER_IMAGE_PLACEHOLDER = getPlaceholderImage(64, 64, "Image");
 
@@ -355,16 +356,15 @@ const HomeSliders = () => {
                       disabled={isUploadingImage}
                     />
                   </label>
-                  <input
-                    type="text"
-                    name="link"
-                    defaultValue={editingSlider.link || ""}
-                    placeholder="Optional: /offers or https://example.com"
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  />
-                  <p className="text-xs text-gray-500 -mt-2">
-                    Leave empty to make banner non-clickable. Invalid links are ignored.
-                  </p>
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Link Configuration
+                    </label>
+                    <LinkPicker
+                      value={editingSlider.link || ""}
+                      onChange={(val) => setEditingSlider({ ...editingSlider, link: val })}
+                    />
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <input
                       type="number"

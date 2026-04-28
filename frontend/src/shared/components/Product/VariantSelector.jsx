@@ -20,23 +20,40 @@ const VariantSelector = ({ variants, onVariantChange, currentPrice }) => {
   const [selectedVariant, setSelectedVariant] = useState({});
 
   const axes = useMemo(() => {
-    const dynamicAxes = Array.isArray(variants?.attributes)
-      ? variants.attributes
-          .map((attr) => ({
-            label: String(attr?.name || "").trim(),
-            key: normalizeAxisName(attr?.name),
-            values: Array.isArray(attr?.values) ? attr.values : [],
-          }))
-          .filter((attr) => attr.label && attr.key && attr.values.length > 0)
-      : [];
-    if (dynamicAxes.length) return dynamicAxes;
+    const combined = [];
+    const seenKeys = new Set();
 
-    const fallback = [];
+    if (Array.isArray(variants?.attributes)) {
+      variants.attributes.forEach((attr) => {
+        const label = String(attr?.name || "").trim();
+        const key = normalizeAxisName(attr?.name);
+        const values = Array.isArray(attr?.values) ? attr.values : [];
+        if (label && key && values.length > 0) {
+          combined.push({ label, key, values });
+          seenKeys.add(key);
+        }
+      });
+    }
+
     const sizes = Array.isArray(variants?.sizes) ? variants.sizes : [];
+    if (sizes.length > 0 && !seenKeys.has("size")) {
+      combined.push({ label: "Size", key: "size", values: sizes });
+      seenKeys.add("size");
+    }
+
     const colors = Array.isArray(variants?.colors) ? variants.colors : [];
-    if (sizes.length) fallback.push({ label: "Size", key: "size", values: sizes });
-    if (colors.length) fallback.push({ label: "Color", key: "color", values: colors });
-    return fallback;
+    if (colors.length > 0 && !seenKeys.has("color")) {
+      combined.push({ label: "Color", key: "color", values: colors });
+      seenKeys.add("color");
+    }
+
+    const materials = Array.isArray(variants?.materials) ? variants.materials : [];
+    if (materials.length > 0 && !seenKeys.has("material")) {
+      combined.push({ label: "Material", key: "material", values: materials });
+      seenKeys.add("material");
+    }
+
+    return combined;
   }, [variants]);
 
   const getVariantStockValue = (selection) => {

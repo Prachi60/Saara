@@ -11,7 +11,7 @@ const vendorChatThreadSchema = new mongoose.Schema(
         orderRef: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Order',
-            required: true,
+            default: null,
             index: true,
         },
         orderDisplayId: { type: String, trim: true },

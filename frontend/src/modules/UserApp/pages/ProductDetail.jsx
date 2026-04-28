@@ -37,6 +37,8 @@ import Badge from "../../../shared/components/Badge";
 import ProductCard from "../../../shared/components/ProductCard";
 import { getVariantSignature } from "../../../shared/utils/variant";
 import AffiliateBadge from "../../Affiliate/components/AffiliateBadge";
+import ChatDrawer from "../../../shared/components/Chat/ChatDrawer";
+import { initiateChat } from "../services/chatService";
 
 const FlipkartCompactCard = ({ product }) => {
   const navigate = useNavigate();
@@ -224,11 +226,26 @@ const MobileProductDetail = () => {
   const [activeTab, setActiveTab] = useState("Description");
   const [isExpanded, setIsExpanded] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [activeThreadId, setActiveThreadId] = useState(null);
+
+  const handleStartChat = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to chat with seller");
+      navigate("/login");
+      return;
+    }
+    try {
+      const data = await initiateChat(product.vendorId, product.id);
+      setActiveThreadId(data?._id || data?.id);
+      setIsChatOpen(true);
+    } catch (err) {
+      toast.error("Failed to initiate chat");
+    }
+  };
 
   const { items, addItem, removeItem } = useCartStore();
-  const triggerCartAnimation = useUIStore(
-    (state) => state.triggerCartAnimation
-  );
+  const { triggerCartAnimation, toggleCart } = useUIStore();
   const {
     addItem: addToWishlist,
     removeItem: removeFromWishlist,
@@ -377,12 +394,26 @@ const MobileProductDetail = () => {
     const hasDynamicAxes = attributeAxes.length > 0;
     const hasSizeVariants = Array.isArray(product?.variants?.sizes) && product.variants.sizes.length > 0;
     const hasColorVariants = Array.isArray(product?.variants?.colors) && product.variants.colors.length > 0;
+    const hasMaterialVariants = Array.isArray(product?.variants?.materials) && product.variants.materials.length > 0;
+
     const isMissingDynamicAxis = hasDynamicAxes
-      ? attributeAxes.some((attr) => !String(selectedVariant?.[attr.name] || selectedVariant?.[String(attr.name || "").toLowerCase().replace(/\s+/g, "_")] || "").trim())
+      ? attributeAxes.some((attr) => {
+        const slug = String(attr.name || "").trim().toLowerCase().replace(/\s+/g, "_");
+        const val = selectedVariant?.[attr.name] || selectedVariant?.[slug];
+        return !String(val || "").trim();
+      })
       : false;
+
     const selectedSize = String(selectedVariant?.size || "").trim();
     const selectedColor = String(selectedVariant?.color || "").trim();
-    if (isMissingDynamicAxis || ((hasSizeVariants && !selectedSize) || (hasColorVariants && !selectedColor))) {
+    const selectedMaterial = String(selectedVariant?.material || "").trim();
+
+    const isMissingStandardAxis = 
+      (hasSizeVariants && !selectedSize) || 
+      (hasColorVariants && !selectedColor) || 
+      (hasMaterialVariants && !selectedMaterial);
+
+    if (isMissingDynamicAxis || isMissingStandardAxis) {
       toast.error("Please select required variant options");
       return;
     }
@@ -402,6 +433,11 @@ const MobileProductDetail = () => {
     }
     if (quantity > effectiveStock) {
       toast.error(`Only ${effectiveStock} item(s) available for selected variant`);
+      return;
+    }
+
+    if (isInCart) {
+      toggleCart();
       return;
     }
 
@@ -430,8 +466,14 @@ const MobileProductDetail = () => {
 
   const handleBuyNow = () => {
     if (!product) return;
+    
+    // Add to cart first
     handleAddToCart();
-    navigate("/cart");
+    
+    // If user is authenticated, go to checkout. 
+    // If not, handleAddToCart already added it, so just go to login/register or checkout.
+    // Actually, checkout route is protected, so it will redirect to login automatically.
+    navigate("/checkout");
   };
 
   const handleFavorite = () => {
@@ -658,7 +700,10 @@ const MobileProductDetail = () => {
                     </div>
                     <span className="text-base font-bold text-gray-900 leading-tight mt-0.5">{vendor?.storeName || vendor?.name || "ecom storess"}</span>
                   </Link>
-                  <button className="p-2 text-gray-800">
+                  <button 
+                    onClick={handleStartChat}
+                    className="p-2 text-gray-800"
+                  >
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                       <line x1="8" y1="9" x2="16" y2="9"></line>
@@ -1073,7 +1118,7 @@ const MobileProductDetail = () => {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-2 z-[9999] shadow-[0_-8px_20px_rgba(0,0,0,0.12)]">
         <div className="flex items-center gap-2 w-full max-w-7xl mx-auto px-2">
           <button
-            onClick={handleAddToCart}
+            onClick={isInCart ? toggleCart : handleAddToCart}
             disabled={product.stock === "out_of_stock"}
             className={`flex-1 h-12 rounded-lg font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all active:scale-95 ${product.stock === "out_of_stock"
               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -1094,6 +1139,12 @@ const MobileProductDetail = () => {
           </button>
         </div>
       </div>
+      <ChatDrawer 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)} 
+        threadId={activeThreadId}
+        vendorName={vendor?.storeName || vendor?.name || product.vendorName}
+      />
     </>
   );
 };

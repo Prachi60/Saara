@@ -199,6 +199,9 @@ const MobileHome = () => {
   const [catalogProducts, setCatalogProducts] = useState([]);
   const [homeVendors, setHomeVendors] = useState([]);
   const [homeBrands, setHomeBrands] = useState([]);
+  const [categoryFocusBanner, setCategoryFocusBanner] = useState(null);
+  const [categoryFocusItems, setCategoryFocusItems] = useState([]);
+  const [dealItems, setDealItems] = useState([]);
 
   const fallbackMostPopular = getMostPopular();
   const fallbackTrending = getTrending();
@@ -352,10 +355,52 @@ const MobileHome = () => {
             link: resolveBannerLink(banner),
           }));
         setSideBanner(mapped[0] || null);
+
+        // Category Focus Banner
+        const focusBanner = allBanners
+          .filter((banner) => String(banner?.type || "") === "category_focus_banner")
+          .sort((a, b) => toNumber(a.order, 0) - toNumber(b.order, 0))[0];
+        if (focusBanner) {
+          setCategoryFocusBanner({
+            title: focusBanner.title,
+            subtitle: focusBanner.subtitle,
+            description: focusBanner.description,
+            image: focusBanner.image,
+            link: resolveBannerLink(focusBanner),
+          });
+        } else {
+          setCategoryFocusBanner(null);
+        }
+
+        // Category Focus Items
+        const focusItems = allBanners
+          .filter((banner) => String(banner?.type || "") === "category_focus_item")
+          .sort((a, b) => toNumber(a.order, 0) - toNumber(b.order, 0))
+          .map((banner) => ({
+            name: banner.title,
+            image: banner.image,
+            link: resolveBannerLink(banner),
+          }));
+        setCategoryFocusItems(focusItems);
+
+        // Deal Items
+        const deals = allBanners
+          .filter((banner) => String(banner?.type || "") === "deal_item")
+          .sort((a, b) => toNumber(a.order, 0) - toNumber(b.order, 0))
+          .map((banner) => ({
+            brand: banner.title,
+            offer: banner.subtitle,
+            image: banner.image,
+            link: resolveBannerLink(banner),
+          }));
+        setDealItems(deals);
       } else {
         setSlides(DEFAULT_HERO_SLIDES);
         setPromoBanners([]);
         setSideBanner(null);
+        setCategoryFocusBanner(null);
+        setCategoryFocusItems([]);
+        setDealItems([]);
       }
       return true;
     } catch {
@@ -637,10 +682,10 @@ const MobileHome = () => {
           </div>
 
           {/* Category In Focus */}
-          <CategoryInFocus />
+          <CategoryInFocus banner={categoryFocusBanner} items={categoryFocusItems} />
 
           {/* Deals Section */}
-          <DealsSection />
+          <DealsSection items={dealItems} />
 
           {/* Trust Bar */}
           <TrustBar />

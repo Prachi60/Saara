@@ -13,9 +13,11 @@ import * as returnController from '../controllers/return.controller.js';
 import * as reviewController from '../controllers/review.controller.js';
 import * as shippingController from '../controllers/shipping.controller.js';
 import * as uploadController from '../controllers/upload.controller.js';
+import * as walletController from '../controllers/wallet.controller.js';
+import * as supportController from '../controllers/support.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
-import { authLimiter } from '../../../middlewares/rateLimiter.js';
+import { authLimiter, otpLimiter, otpVerifyLimiter } from '../../../middlewares/rateLimiter.js';
 import { validate } from '../../../middlewares/validate.js';
 import {
     registerSchema,
@@ -40,10 +42,10 @@ const vendorAuth = [authenticate, authorize('vendor'), enforceAccountStatus];
 
 // Auth
 router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);
-router.post('/auth/verify-otp', validate(verifyOtpSchema), authController.verifyOTP);
-router.post('/auth/resend-otp', validate(resendOtpSchema), authController.resendOTP);
+router.post('/auth/verify-otp', otpVerifyLimiter, validate(verifyOtpSchema), authController.verifyOTP);
+router.post('/auth/resend-otp', otpLimiter, validate(resendOtpSchema), authController.resendOTP);
 router.post('/auth/forgot-password', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
-router.post('/auth/verify-reset-otp', authLimiter, validate(verifyResetOtpSchema), authController.verifyResetOTP);
+router.post('/auth/verify-reset-otp', otpVerifyLimiter, validate(verifyResetOtpSchema), authController.verifyResetOTP);
 router.post('/auth/reset-password', authLimiter, validate(resetPasswordSchema), authController.resetPassword);
 router.post('/auth/login', authLimiter, validate(loginSchema), authController.login);
 router.post('/auth/refresh', validate(refreshTokenSchema), authController.refresh);
@@ -96,8 +98,16 @@ router.get('/performance/metrics', ...vendorAuth, performanceController.getPerfo
 // Analytics
 router.get('/analytics/overview', ...vendorAuth, analyticsController.getAnalyticsOverview);
 
-// Earnings
+// Wallet & Earnings
+router.get('/wallet/stats', ...vendorAuth, walletController.getWalletStats);
+router.get('/wallet/history', ...vendorAuth, walletController.getTransactionHistory);
 router.get('/earnings', ...vendorAuth, orderController.getEarnings);
+
+// Support Tickets
+router.get('/support/ticket-types', ...vendorAuth, supportController.getTicketTypes);
+router.get('/support/tickets', ...vendorAuth, supportController.getMyTickets);
+router.post('/support/tickets', ...vendorAuth, supportController.createTicket);
+router.post('/support/tickets/:id/message', ...vendorAuth, supportController.replyToTicket);
 
 // Return requests
 router.get('/return-requests', ...vendorAuth, returnController.getVendorReturnRequests);
